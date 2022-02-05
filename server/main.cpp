@@ -1,8 +1,12 @@
 #include <cstdio>
+#include <iostream>
 #include "RPCServer.h"
 
 int main(int argc, char const* argv[])
 {
+    cout << "************************************************" << endl;
+    cout << "*   Welcome to the Group 2 Server Application  *" << endl;
+    cout << "************************************************" << endl;
 
     const char* serverIP = argv[1];
     int port = atoi(argv[2]);
@@ -18,9 +22,10 @@ int main(int argc, char const* argv[])
     // Print it out
 
     statusOk = serverObj->StartServer();
-    printf("Endless loop, as server is up always");
+
     while (statusOk)
     {
+        printf("\nWaiting...\n");
         statusOk = serverObj->ListenForClient();
         statusOk = serverObj->ProcessRPC(); // Launch thread
     }

@@ -23,7 +23,10 @@
 #include <string.h>
 #include <vector>
 #include <iterator>
+#include <unordered_map>
+#include <string>
 
+using namespace std;
 
 class RPCServer
 {
@@ -42,11 +45,14 @@ private:
     char* m_serverIP;
     int m_port;
     struct sockaddr_in m_address;
+    bool m_authenticated;
+    unordered_map<string,string> m_users;
+
+
 
     // First one in this function should be a connect, and it 
     // will continue try to process RPC's until a Disconnect happens
     bool ProcessConnectRPC(std::vector<std::string>& arrayTokens);
-    bool ProcessStatusRPC();
     bool ProcessDisconnectRPC();
 
 
