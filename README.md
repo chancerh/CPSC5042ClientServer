@@ -1,20 +1,17 @@
-# CPSC5042ClientServer
+# CPSC5042ClientServerGroupTwo
 
-This is a first iteration of a client server project for CPSC5042.
+This repository contains the code for the Group 2 CPSC5042 Client/Server RPC project. The source code for the RPC server is in the server folder. The source code for the RPC Client is in the client folder. You can either use the Makefile to compile and create binaries from the command line, or use CMakeLists.txt and cmake. This README contains instructions for compiling with Make and running from the command line.
 
-The Server folder contains three files that is based on currently a single threaded server. It contains two RPCS
-  connect
-  disconnect
-  
-THe implementation involves passing a string of "MIKE", "MIKE" to correctly get into the server code. It is hardcoded, but should be changed to something that does some type
-of authentication.
+To compile all of the source code and create the executables for both the server and the client, type "make" (without the quotes) in the project root directory. This will create the startClient and startServer executables, both in the project root.
 
-It uses a concept of sending server arguments via a semicolon delimited arguments. There is a parser on the server that will create a token array of these arguments.
+The server executable takes two command line arguments - the IP and port, separated by space. To run the server, type the following at the command prompt and hit return (replace IP_ADDRESS and PORT with your IP address and port):
 
-THe Client folder contains a program to test the Connect, Disconnect RPC's. You can easily extend this. Hopefully by reviewing the code, you will see what can be done to adapt it 
-to your needs.
+    ./startServer IP_ADDRESS PORT
 
-You will need to pass command line arguments to both processes . The first command line argument is serverIP. The second is port. For instance  ./client 127.0.0.1 8081 or
-./server 127.0.0.1
+This will start the RPC server, which will run until you kill it with CTRL+C.
 
-I will be refining this in the future, but this should be a good place to start
+To run the client, start another session on the server running the client, change directory to the project root, and type the following:
+
+   ./startClient IP_ADDRESS PORT
+
+The client will connect to the server, prompt for a username and password. If the login is successful, the client will sleep for 10 seconds, then disconnect. If the login is unsuccessful, the user will be prompted for credentials until correct ones are entered, or the client is stopped with CTRL+C.
