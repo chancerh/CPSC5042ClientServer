@@ -12,6 +12,6 @@ This will start the RPC server, which will run until you kill it with CTRL+C.
 
 To run the client, start another session on the server running the client, change directory to the project root, and type the following:
 
-   ./startClient IP_ADDRESS PORT
+    ./startClient IP_ADDRESS PORT
 
 The client will connect to the server, prompt for a username and password. If the login is successful, the client will sleep for 10 seconds, then disconnect. If the login is unsuccessful, the user will be prompted for credentials until correct ones are entered, or the client is stopped with CTRL+C.
