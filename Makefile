@@ -1,4 +1,4 @@
-# Sert the g++ compiler flags to compile to the C++11 standard and to show all
+# Set the g++ compiler flags to compile to the C++11 standard and to show all
 # warnings. 
 CXXFLAGS = -std=c++11 -W -Wall
 
