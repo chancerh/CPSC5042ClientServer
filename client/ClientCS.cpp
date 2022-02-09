@@ -60,8 +60,8 @@ int main(int argc, char const* argv[])
     if (argc < 3)
     {
         //If insufficient number of args, print error and exit program.
-        cout << "\nInvalid IP Address or Port number.\n";
-        cout << "Exiting Client Program...\n";
+        cout << "\nMissing IP Address or Port number.\n";
+        cout << "Exiting Client Application...\n";
         return -1;
     }
 

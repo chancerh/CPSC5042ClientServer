@@ -36,6 +36,15 @@ int main(int argc, char const* argv[])
     cout << "*   Welcome to the Group 2 Server Application  *" << endl;
     cout << "************************************************" << endl;
 
+    //check if user entered correct # of Command Line args for IP and Port
+    if (argc < 3)
+    {
+        //If insufficient number of args, print error and exit program.
+        cout << "\nMissing IP Address or Port number.\n";
+        cout << "Exiting Server Application...\n";
+        return -1;
+    }
+
     //Extract serverIP and port numbers from command line arguments
     const char* serverIP = argv[1];
     int port = atoi(argv[2]);
