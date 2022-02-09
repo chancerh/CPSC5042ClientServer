@@ -45,16 +45,21 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock);
 /***************************************** End of Function Prototypes *************************************************/
 /**********************************************************************************************************************/
 
-/**********************************************************************************************************************/
-/******************************************* End of Function Prototypes ***********************************************/
-/**********************************************************************************************************************/
-
 int main(int argc, char const* argv[])
 {
     // Welcome the user
     cout << "*************************************************" << endl;
     cout << "*   Welcome to the Group 2 Client Application   *" << endl;
     cout << "*************************************************" << endl;
+
+    //check if user entered correct # of Command Line args for IP and Port
+    if (argc < 3)
+    {
+        //If insufficient number of args, print error and exit program.
+        cout << "\nMissing IP Address or Port number.\n";
+        cout << "Exiting Client Application...\n";
+        return -1;
+    }
 
     //initialize data
     int sock = 0;
@@ -66,8 +71,11 @@ int main(int argc, char const* argv[])
     const int port = atoi(argv[2]);
     char connected;
     const int SLEEP_TIME = 10;
+    bool bConnect = false;
 
-    bool bConnect = ConnectToServer(serverAddress, port, sock);
+
+
+    bConnect = ConnectToServer(serverAddress, port, sock);
 
     //testing if client connect to server
     if (bConnect == true)
