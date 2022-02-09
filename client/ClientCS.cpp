@@ -56,6 +56,15 @@ int main(int argc, char const* argv[])
     cout << "*   Welcome to the Group 2 Client Application   *" << endl;
     cout << "*************************************************" << endl;
 
+    //check if user entered correct # of Command Line args for IP and Port
+    if (argc < 3)
+    {
+        //If insufficient number of args, print error and exit program.
+        cout << "\nInvalid IP Address or Port number.\n";
+        cout << "Exiting Client Program...\n";
+        return -1;
+    }
+
     //initialize data
     int sock = 0;
     struct sockaddr_in serv_addr;
@@ -66,8 +75,11 @@ int main(int argc, char const* argv[])
     const int port = atoi(argv[2]);
     char connected;
     const int SLEEP_TIME = 10;
+    bool bConnect = false;
 
-    bool bConnect = ConnectToServer(serverAddress, port, sock);
+
+
+    bConnect = ConnectToServer(serverAddress, port, sock);
 
     //testing if client connect to server
     if (bConnect == true)
