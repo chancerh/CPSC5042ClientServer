@@ -1,18 +1,7 @@
-/* RPCServer.cpp : This file contains the 'main' function.Program execution begins and ends there.
- This is a very very simple example of a CPSC5042 Server that will listen to
- a CPSC5042 Client
- Version 1 will have the server handle one client at a time. The server will:
- - Wait for connection from client
- - Process the Connect API  once connect
- - Process all RPC requests until the client does a Disconnect RPC
- - This intial server will handle 3 RPC's:
- -      Connect
- -      HowManyChars (will return HowManyChars are in the input message)
- -      Disconnnect
- server, then run the various RPC's that might happen between the server and
- client
-*/
-
+//Author  : Group#2
+//Date    : 02/07/2022
+//Version : 1.0
+//Filename: RPCServer.h
 
 #pragma once
 #include <unistd.h>
@@ -31,30 +20,73 @@ using namespace std;
 class RPCServer
 {
 public:
+    /**
+     * Constructor - create a new RPCServer instance
+     * @param serverIP The IP address of the server
+     * @param port The port number the server should use
+     */
     RPCServer(const char *serverIP, int port);
+
+    /**
+     * Destructor - deallocates resources used when the instance is no longer needed
+     */
     ~RPCServer();
+
+    /**
+     * Sets up and configures and binds the socket
+     * @return True if the socket is able to be created, setup,
+     *          and bound, and if the server is able to listen. False otherwise
+     *
+     */
     bool StartServer();
+
+    /**
+     * Accepts a new connection from a client by listening on its address.
+     * @return Always TRUE
+     */
     bool ListenForClient();
+
+    /**
+     * Processes incoming RPCs by parsing the input arguments and calling the appropriate functions
+     * @return Always TRUE
+     */
     bool ProcessRPC();
-    void ParseTokens(char* buffer, std::vector<std::string>& a);
+
+
 
 private:
+    //Member elements
     int m_rpcCount;
-    int m_server_fd;
-    int m_socket;
-    char* m_serverIP;
-    int m_port;
+    int m_server_fd; //server fault domain
+    int m_socket; //socket number
+    char* m_serverIP; //server IP
+    int m_port; //server port connection
     struct sockaddr_in m_address;
-    bool m_authenticated;
-    unordered_map<string,string> m_users;
+    bool m_authenticated; //flag to track if client provided correct credentials and is logged in
+    unordered_map<string,string> m_users; //map storing all username and password pairs
 
 
+    /**
+     * The ProcessConnectRPC() function process a connect RPC by validating the input credentials. If input credentials
+     * are correct, then m_authenticated is flipped to true
+     * @param arrayTokens A vector containing the tokens of incoming RPC. arrayTokens[1] contains username,
+     *                      arrayTokens[2] contains the password
+     * @return A boolean indicating if the input credentials are correct
+     */
+    bool ProcessConnectRPC(vector<std::string>& arrayTokens);
 
-    // First one in this function should be a connect, and it 
-    // will continue try to process RPC's until a Disconnect happens
-    bool ProcessConnectRPC(std::vector<std::string>& arrayTokens);
+    /**
+     * The processDisconnectRPC() disconnects the client connection from the server
+     * @return Always returns true
+     */
     bool ProcessDisconnectRPC();
 
-
+    /**
+     * The ParseTokens() function processes an input char array buffer containing the RPC parameters, and parses it
+     * into a string vector. The parsing of the buffer relies on ';' as the delimiter
+     * @param buffer Input char array buffer to be parsed, with ';' as delimeter between parameters
+     * @param a A string vector containing the parsed RPC parameters
+     */
+    void ParseTokens(char* buffer, std::vector<std::string>& a);
 };
 

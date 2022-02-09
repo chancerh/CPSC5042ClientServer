@@ -1,3 +1,8 @@
+//Author  : Group#2
+//Date    : 02/07/2022
+//Version : 1.0
+//Filename: RPCServer.cpp
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -8,16 +13,21 @@
 #include <iterator>
 #include "RPCServer.h"
 
-//#define PORT 8081
 
 using namespace std;
 
+/**
+ * Constructor
+ */
 RPCServer::RPCServer(const char *serverIP, int port)
 {
-    m_rpcCount = 0; 
+    //Initialize member elements
+    m_rpcCount = 0;
     m_serverIP = (char *) serverIP;
     m_port = port;
     m_authenticated = false;
+
+    //For milestone 1 we use hardcoded values. Later milestone may read and store credentials in file
     m_users = {
             {"Chance", "passw0rd"},
             {"Jusmin", "12340000"},
@@ -27,12 +37,14 @@ RPCServer::RPCServer(const char *serverIP, int port)
     };
 };
 
+/**
+ * Destructor
+ */
 RPCServer::~RPCServer() {};
 
-/*
-* StartServer will create a server on a Port that was passed in, and create a socket
-*/
-
+/**
+ * StartServer will create a server on a Port that was passed in, and create a socket
+ */
 bool RPCServer::StartServer()
 {
     int opt = 1;
@@ -45,7 +57,7 @@ bool RPCServer::StartServer()
         exit(EXIT_FAILURE);
     }
 
-    // Forcefully attaching socket to the port 8080
+    // Forcefully attaching socket to the port passed in to the constructor
     if (setsockopt(m_server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
         &opt, sizeof(opt)))
     {
@@ -57,9 +69,8 @@ bool RPCServer::StartServer()
     m_address.sin_addr.s_addr = INADDR_ANY;
     m_address.sin_port = htons(m_port);
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(m_server_fd, (struct sockaddr*)&m_address,
-        sizeof(m_address)) < 0)
+    // Forcefully attaching socket to the port passed in to the constructor
+    if (bind(m_server_fd, (struct sockaddr*)&m_address, sizeof(m_address)) < 0)
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
@@ -75,11 +86,9 @@ bool RPCServer::StartServer()
     return true;
 }
 
-/*
-* Will accept a new connection by listening on it's address
-*
-*/
-
+/**
+ * Will accept a new connection by listening on its address
+ */
 bool RPCServer::ListenForClient()
 {
 
@@ -92,20 +101,21 @@ bool RPCServer::ListenForClient()
         exit(EXIT_FAILURE);
     }
     printf("-> Accepted Connection");
-    this->ProcessRPC();
     return true;
 }
 
-/*
-* Going to populate a String vector with tokens extracted from the string the client sent.
-* The delimter will be a ; 
-* An example buffer could be "connect;mike;mike;"
-*/
+/**
+ * Going to populate a String vector with tokens extracted from the string the client sent.
+ * The delimiter will be a ";"
+ * An example buffer could be "connect;mike;mike;"
+ */
 void RPCServer::ParseTokens(char * buffer, std::vector<std::string> & a)
 {
+    //Declare variables to facilitate the parsing of input buffer
     char* token;
     char* rest = (char *) buffer;
 
+    //Loop through the input buffer, and extract strings using the ';' delimiter
     while ((token = strtok_r(rest, ";", &rest)))
     {
         a.push_back(token);
@@ -114,12 +124,11 @@ void RPCServer::ParseTokens(char * buffer, std::vector<std::string> & a)
     return;
 }
 
-/*
-* ProcessRPC will examine buffer and will essentially control
-*/
+/**
+ * ProcessRPC will examine buffer and will essentially control
+ */
 bool RPCServer::ProcessRPC()
 {
-    const char* rpcs[] = { "connect", "disconnect", "status"};
     char buffer[1024] = { 0 };
     std::vector<std::string> arrayTokens;
     int valread = 0;
@@ -128,9 +137,10 @@ bool RPCServer::ProcessRPC()
     const int RPCTOKEN = 0;
     bool bContinue = true;
 
+    //Loop while server is connected to client
     while ((bContinue))
     {
-        // Should be blocked when a new RPC has not called us yet
+        // should be blocked when a new RPC has not called us yet
         valread = read(this->m_socket, buffer, sizeof(buffer));
         if (valread <= 0)
         {
@@ -140,15 +150,17 @@ bool RPCServer::ProcessRPC()
         }
         printf("\nRPC: %s\n", buffer);
 
+        // reset token
         arrayTokens.clear();
         this->ParseTokens(buffer, arrayTokens);
 
         // string statements are not supported with a switch, so using if/else logic to dispatch
         string aString = arrayTokens[RPCTOKEN];
 
+        //If we received a Connect RPC and the server is not yet connected, process the ConnectRPC
         if ((bConnected == false) && (aString == "connect"))
         {
-            bStatusOk = ProcessConnectRPC(arrayTokens);  // Connect RPC
+            bStatusOk = ProcessConnectRPC(arrayTokens);  // connect RPC
             if (bStatusOk == true)
             {
                 printf("User Login Successful!\n ");
@@ -158,14 +170,18 @@ bool RPCServer::ProcessRPC()
                 printf("User Login Unsuccessful!\n");
             }
         }
-        else if ((bConnected == true) && (aString == "disconnect"))
+
+        //If we received a Disconnect RPC and the server is connected, process disconnect RPC
+        else if ((bConnected == true) && (aString == "disconnect")) // disconnect RPC
         {
             bStatusOk = ProcessDisconnectRPC();
             printf("Terminating connection.\n");
             bConnected = false;
-            bContinue = false; // We are going to leave this loop, as we are done
+            bContinue = false; // we are going to leave this loop, as we are done
         }
-        else 
+
+        //If RPC is not supported, print status on screen
+        else
         {
             // Not in our list, perhaps, print out what was sent
             printf("RPCs not supported...\n");
@@ -176,25 +192,34 @@ bool RPCServer::ProcessRPC()
     return true;
 }
 
-/*
-*/
+/**
+ * ProcessDisconnectRPC will send the disconnect flag to server
+ */
 bool RPCServer::ProcessDisconnectRPC()
 {
+    //Declare a buffer for the response
     char szBuffer[16];
+
+    //Add response to the buffer
     strcpy(szBuffer, "disconnect");
+
     // Send Response back on our socket
     int nlen = strlen(szBuffer);
     szBuffer[nlen] = 0;
     send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+
     return true;
 }
 
+/**
+ * ProcessConnectRPC will send connect flag to server with user authentication process
+ */
 bool RPCServer::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
 {
 
+    //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
     const int PASSWORDTOKEN = 2;
-
     char szBuffer[80];
 
     // Strip out tokens 1 and 2 (username, password)
@@ -235,5 +260,6 @@ bool RPCServer::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     szBuffer[nlen] = 0;
     send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
 
+    //return the result of the authentication
     return m_authenticated;
 }
