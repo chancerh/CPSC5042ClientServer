@@ -9,4 +9,4 @@ include_directories(client)
 
 add_executable(startClient client/ClientCS.cpp)
 
-add_executable(startServer server/main.cpp server/RPCServer.cpp server/RPCServer.h)
+add_executable(startServer server/main.cpp server/RPCServer.cpp server/RPCServer.h server/Calculator.cpp server/Calculator.h)
