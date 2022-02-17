@@ -9,6 +9,8 @@ class Calculator
 {
 public:
     string calculateExpression(const string& inExpr);
+    string binToHex(string& s);
+    string hexToBin(string& s);
 
 private:
 
