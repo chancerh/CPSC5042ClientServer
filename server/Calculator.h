@@ -2,6 +2,7 @@
 #define CPSC5042CLIENTSERVER_CALCULATOR_H
 
 #include <string>
+#include <cstring>
 #include <unordered_map>
 #include <vector>
 #include <cmath>
@@ -51,5 +52,5 @@ private:
 
 };
 
-#include "Calculator.cpp"
+//#include "Calculator.cpp"
 #endif //CPSC5042CLIENTSERVER_CALCULATOR_H
