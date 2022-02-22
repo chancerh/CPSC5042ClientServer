@@ -180,6 +180,11 @@ bool RPCServer::ProcessRPC()
             bContinue = false; // we are going to leave this loop, as we are done
         }
 
+        else if(aString == "calculateExpression")
+        {
+           ProcessCalcExp(arrayTokens);
+        }
+
         //If RPC is not supported, print status on screen
         else
         {
@@ -262,4 +267,22 @@ bool RPCServer::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
 
     //return the result of the authentication
     return m_authenticated;
+}
+
+string RPCServer::ProcessCalcExp(vector<std::string> &arrayTokens)
+{
+   //Declaring a string to store the result
+   string result;
+   char szBuffer[80];
+
+   Calculator myCalc;
+   result = myCalc.calculateExpression(arrayTokens[1]);
+   result = result + ";";
+   strcpy(szBuffer, result.c_str());
+
+   int nlen = strlen(szBuffer);
+   szBuffer[nlen] = 0;
+   send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+
+   return result;
 }
