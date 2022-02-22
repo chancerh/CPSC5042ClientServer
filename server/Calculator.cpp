@@ -143,7 +143,7 @@ vector<float> Calculator::summary(const vector<float> &vec)
     return summaryOut;
 
 }
-=======
+
 vector<string> Calculator::expTokenize(string &inExpression)
 {
    //Create a vector to store the tokens
