@@ -234,4 +234,43 @@ string Calculator::hexToBin(string& s) {
     }
     return tmp;
 }
+string decToBin(string& s){
 
+    //convert string to int
+    int num = stoi(s);
+    vector<unsigned int> tempResult;
+    stringstream temp;
+
+    // storing remainder in tempResult
+    while (num > 0) {
+        tempResult.push_back(num % 2) ;
+        num = num / 2;
+    }
+
+    //reverse order and convert
+    while(!tempResult.empty()){
+        temp<<tempResult.back();
+        tempResult.pop_back();
+    }
+    return temp.str();
+}
+
+string binToDec(string& s){
+    //convert string to int
+    int num = stoi(s);
+    int result = 0;
+
+    // Initializing base value to 1, i.e 2^0
+    int base = 1;
+
+    while (num) {
+        int last_digit = num % 10;
+        num = num / 10;
+
+        result += last_digit * base;
+
+        base = base * 2;
+    }
+
+    return to_string(result);
+}

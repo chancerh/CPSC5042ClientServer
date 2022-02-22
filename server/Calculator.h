@@ -17,6 +17,8 @@ public:
 
     string binToHex(string& s);
     string hexToBin(string& s);
+    string decToBin(string& s);
+    string binToDec(string& s);
 
 
 private:
