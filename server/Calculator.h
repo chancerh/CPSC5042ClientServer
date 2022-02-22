@@ -12,7 +12,12 @@ using namespace std;
 class Calculator
 {
 public:
+
     string calculateExpression(string inExpr);
+
+    string binToHex(string& s);
+    string hexToBin(string& s);
+
 
 private:
     /**
