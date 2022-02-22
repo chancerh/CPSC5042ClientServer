@@ -14,6 +14,7 @@
 #include <iterator>
 #include <unordered_map>
 #include <string>
+#include "Calculator.h"
 
 using namespace std;
 
@@ -80,6 +81,15 @@ private:
      * @return Always returns true
      */
     bool ProcessDisconnectRPC();
+
+    /**
+    * The ProcessCalcExp() function processes a request to calculate an
+    * algebraic expression, calculates the expression and returns the result
+    * @param arrayTokens A vector containing the tokens of incoming RPC.
+    *                      arrayTokens[1] contains the mathematical expression
+    * @return A boolean indicating if the input credentials are correct
+    */
+    string ProcessCalcExp(vector<std::string>& arrayTokens);
 
     /**
      * The ParseTokens() function processes an input char array buffer containing the RPC parameters, and parses it

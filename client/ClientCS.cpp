@@ -15,12 +15,13 @@
 
 using namespace std;
 
-/**********************************************************************************************************************/
-/********************************************* Function Prototypes ****************************************************/
-/**********************************************************************************************************************/
+/******************************************************************************/
+/**************************** Function Prototypes *****************************/
+/******************************************************************************/
 
 /**
- * Prompts the user to enter credentials via keyboard, then returns the credentials in a format ready for RPC
+ * Prompts the user to enter credentials via keyboard, then returns the
+ * credentials in a format ready for RPC
  * @return A string containing user credentials
  */
 string getCredentials();
@@ -34,16 +35,17 @@ void ParseTokens(char* buffer, std::vector<std::string>& a);
 
 /**
  * ConnectToServer will connect to the Server based on command line
- * @param serverAddress A pointer to a char array containing the IP address of the server
+ * @param serverAddress A pointer to a char array containing the IP address
+ *                      of the server
  * @param port An int containing the port on the server for the connection
  * @param sock An int containing the socket number
  * @return A bool indicating if the connection was successful or not
  */
 bool ConnectToServer(const char *serverAddress, int port, int & sock);
 
-/**********************************************************************************************************************/
-/***************************************** End of Function Prototypes *************************************************/
-/**********************************************************************************************************************/
+/******************************************************************************/
+/********************** End of Function Prototypes ****************************/
+/******************************************************************************/
 
 int main(int argc, char const* argv[])
 {
@@ -65,6 +67,7 @@ int main(int argc, char const* argv[])
     int sock = 0;
     struct sockaddr_in serv_addr;
     string connectRPC = "connect;";
+    string calcExpRPC = "calculateExpression;";
     const char* logoffRPC = "disconnect;";
     char buffer[1024] = { 0 };
     const char *serverAddress = argv[1];
@@ -121,8 +124,35 @@ int main(int argc, char const* argv[])
     }
 
     //Sleep for 10 seconds
-    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
-    sleep(SLEEP_TIME);
+//    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
+//    sleep(SLEEP_TIME)
+
+    if (bConnect == true)
+    {
+        string expr;
+        vector<string> result;
+
+        calcExpRPC = "calculateExpression;";
+        cout << "Enter expression: ";
+
+        getline(cin, expr);
+        getline(cin, expr);
+        calcExpRPC = calcExpRPC + expr + ";";
+        strcpy(buffer, &calcExpRPC[0]);
+
+        //Add a null terminator
+        int nlen = strlen(buffer);
+        buffer[nlen] = 0;
+
+        //Send the created RPC buffer to server
+        send(sock, buffer, strlen(buffer) + 1, 0);
+
+        //Read from server
+        read(sock, buffer, 1024);
+        ParseTokens(buffer, result);
+
+        printf("%s\n", result[0].c_str());
+    }
 
     // Do a Disconnect Message
     if (bConnect == true)
