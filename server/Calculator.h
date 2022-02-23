@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cmath>
+#include <set>
 
 
 using namespace std;
@@ -59,6 +60,14 @@ private:
      * @return The result of the calculation
      */
     double calculateRPN(vector<string>& rpnStack);
+
+    /**
+     * Helper function to validate input strings
+     * @param inExpression String to be validated
+     * @param validChars Set of valid char values (e.g. {'1', '2', '*', '.'})
+     * @return True if all string characters are found in set, otherwise false.
+     */
+    bool validateInputString (string inExpression, set<char> validChars);
 
     //Unordered map containing the supported operators for calculateRPN
     // function, and their precedence order

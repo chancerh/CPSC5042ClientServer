@@ -151,7 +151,14 @@ int main(int argc, char const* argv[])
         read(sock, buffer, 1024);
         ParseTokens(buffer, result);
 
-        printf("%s\n", result[0].c_str());
+        if(result[1] == "0")
+        {
+           printf("%s\n", result[0].c_str());
+        }
+        else
+        {
+           printf("%s\n", "Invalid expression.");
+        }
     }
 
     // Do a Disconnect Message
@@ -247,6 +254,11 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock)
     {
         printf("\n Socket creation error \n");
         return false;
+    }
+    //Debuging
+    else
+    {
+        printf("Socket: %d", sock);
     }
 
     serv_addr.sin_family = AF_INET;

@@ -4,19 +4,29 @@
 #include <stdexcept>
 #include <regex>
 
-
 using namespace std;
 
 string Calculator::calculateExpression(string inExpr)
 {
-   //Parse input expression into tokens using spaces and operators as delimiters
-   vector<string> expTokens = expTokenize(inExpr);
+   //Validate input expression (i.e. containing valid characters)
+   set<char> validChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                           ',', '.', '+', '-', '*', '/', '^', '(', ')', ' '};
+   if (validateInputString(inExpr, validChars))
+   {
 
-   //Convert the tokens into RPN notation
-   expTokens = convertToRPN(expTokens);
+      //Parse input expression into tokens using spaces and operators as delimiters
+      vector<string> expTokens = expTokenize(inExpr);
 
-   //Calculate and return the expression
-   return to_string(calculateRPN(expTokens));
+      //Convert the tokens into RPN notation
+      expTokens = convertToRPN(expTokens);
+
+      //Calculate and return the expression
+      return to_string(calculateRPN(expTokens));
+   }
+   else
+   {
+      throw invalid_argument("Invalid input expression.");
+   }
 }
 
 
@@ -362,5 +372,20 @@ string Calculator::hexToBin(string& s) {
         }
     }
     return tmp;
+}
+
+bool Calculator::validateInputString(string inExpression,
+                                     set<char>validChars)
+{
+   //For each character in the string
+    for (char c : inExpression)
+    {
+       //if character not in valid set, return false
+        if (validChars.find(c) == validChars.end())
+            return false;
+    }
+
+    //if all characters passed test, return true
+    return true;
 }
 
