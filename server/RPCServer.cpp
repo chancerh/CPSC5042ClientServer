@@ -100,6 +100,11 @@ bool RPCServer::ListenForClient()
         perror("accept");
         exit(EXIT_FAILURE);
     }
+    //Debuging
+    else
+    {
+        printf("Socket: %d", m_socket);
+    }
     printf("-> Accepted Connection");
     return true;
 }
@@ -276,8 +281,19 @@ string RPCServer::ProcessCalcExp(vector<std::string> &arrayTokens)
    char szBuffer[80];
 
    Calculator myCalc;
-   result = myCalc.calculateExpression(arrayTokens[1]);
-   result = result + ";";
+
+   //Calculate expression
+   try
+   {
+      result = myCalc.calculateExpression(arrayTokens[1]);
+      result = result + ";0;";
+   }
+   //if invalid argument, return failure status
+   catch (invalid_argument& e)
+   {
+      result = "0;-1;";
+   }
+
    strcpy(szBuffer, result.c_str());
 
    int nlen = strlen(szBuffer);

@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 #include <cmath>
+#include <set>
+
 
 using namespace std;
 
@@ -20,6 +22,21 @@ public:
     string decToBin(string& s);
     string binToDec(string& s);
 
+
+
+    // Calculate the mean of a set of numbers
+    float mean(vector<float>);
+    // Calculate the median of a set of numbers
+    float median(vector<float>);
+    // Calculate the sample variance (meaning it uses n-1 in the denominator)
+    float var(const vector<float> &vec);
+    // calculate the sample standard deviation (meaning it uses n-1 in the denomicator). 
+    float sd(vector<float>);
+    // calculate a 5 number + mean summary
+    vector<float> summary(const vector<float> &vec);
+    // Caclulate quantiles
+    vector<float> quantiles(vector<float> data, float quantCuts);
+    
 
 private:
     /**
@@ -37,6 +54,7 @@ private:
      */
     vector<string> convertToRPN(vector<string>& expTokens);
 
+
     /**
      * Calculates an expression in RPN notation. Expression passed in as a
      * vector of strings containing the operations and operators in RPN notation
@@ -44,6 +62,14 @@ private:
      * @return The result of the calculation
      */
     double calculateRPN(vector<string>& rpnStack);
+
+    /**
+     * Helper function to validate input strings
+     * @param inExpression String to be validated
+     * @param validChars Set of valid char values (e.g. {'1', '2', '*', '.'})
+     * @return True if all string characters are found in set, otherwise false.
+     */
+    bool validateInputString (string inExpression, set<char> validChars);
 
     //Unordered map containing the supported operators for calculateRPN
     // function, and their precedence order
