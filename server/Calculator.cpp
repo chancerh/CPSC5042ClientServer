@@ -29,6 +29,65 @@ string Calculator::calculateExpression(string inExpr)
    }
 }
 
+string Calculator::convertorMenu(string s, int choice){
+    //Validate input
+    set<char> binInput = {'0', '1'};
+    set<char> decInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    set<char> hexInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                          'A', 'B', 'C', 'D', 'E', 'F'};
+    string token;
+
+    do{
+        switch(choice){
+            case 1:
+                printf("Convert Binary to Hexadecimal: ");
+                if(validateConvertorInput(s, binInput)){
+                    token = binToHex(s);
+                    return token;
+                }
+                else
+                {
+                    throw invalid_argument("Invalid input expression.");
+                }
+                break;
+            case 2:
+                printf("Convert Hexadecimal to Binary: ");
+                if(validateConvertorInput(s, hexInput)){
+                    token = hexToBin(s);
+                    return token;
+                }
+                else
+                {
+                    throw invalid_argument("Invalid input expression.");
+                }
+                break;
+            case 3:
+                printf("Convert Binary to Decimal: ");
+                if(validateConvertorInput(s, binInput)){
+                    token = binToDec(s);
+                    return token;
+                }
+                else
+                {
+                    throw invalid_argument("Invalid input expression.");
+                }
+                break;
+            case 4:
+                printf("Convert Decimal to Binary");
+                if(validateConvertorInput(s, decInput)){
+                    token = decToBin(s);
+                    return token;
+                }
+                else
+                {
+                    throw invalid_argument("Invalid input expression.");
+                }
+                break;
+            default:
+                printf("please try again! ");
+        }
+    }while(choice <= 0 || choice > 5);
+}
 
 float Calculator::mean(vector<float> vec) 
 {
@@ -430,4 +489,20 @@ bool Calculator::validateInputString(string inExpression,
     //if all characters passed test, return true
     return true;
 }
+
+bool Calculator::validateConvertorInput(string s,set<char> validChecker){
+    //For each character in the string
+    for (char c : s)
+    {
+        //if character not in valid set, return false
+        if (validChecker.find(c) == validChecker.end())
+            return false;
+    }
+
+    //if all characters passed test, return true
+    return true;
+}
+
+
+
 
