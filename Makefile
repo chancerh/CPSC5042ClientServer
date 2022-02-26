@@ -12,5 +12,5 @@ startClient : client/ClientCS.cpp
 	$(CXX) $(CXXFLAGS) $< -o startClient
 
 # Link the compiled main and RPCServe code to create the server executable
-startServer : server/main.cpp server/RPCServer.h server/RPCServer.cpp
-	$(CXX) $(CXXFLAGS) server/main.cpp server/RPCServer.cpp -o startServer
+startServer : server/main.cpp server/RPCServer.cpp server/Calculator.cpp
+	$(CXX) $(CXXFLAGS) $^ -o startServer
