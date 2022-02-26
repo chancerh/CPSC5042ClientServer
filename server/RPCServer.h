@@ -98,5 +98,7 @@ private:
      * @param a A string vector containing the parsed RPC parameters
      */
     void ParseTokens(char* buffer, std::vector<std::string>& a);
+
+    string ProcessStatSummary(vector<std::string> &arrayTokens);
 };
 
