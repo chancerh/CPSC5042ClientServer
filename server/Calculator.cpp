@@ -362,7 +362,7 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
    return operandStack[0];
 }
 
-string Calculator::binToHex(string& s) {
+string Calculator::binToHex(string &s) {
     s = string(4-s.size() % 4, '0') + s;
     string tmp, bits;
     vector<string> container;
@@ -407,7 +407,7 @@ string Calculator::binToHex(string& s) {
     return regex_replace(tmp, regex("^0+(?!$)"), "");
 }
 
-string Calculator::hexToBin(string& s) {
+string Calculator::hexToBin(string &s) {
     string tmp;
     vector<unsigned long> hexContainer;
     for(int i = 0; i < s.size(); i++) {
@@ -432,7 +432,7 @@ string Calculator::hexToBin(string& s) {
     }
     return tmp;
 }
-string decToBin(string& s){
+string Calculator::decToBin(string &s){
 
 
     //convert string to int
@@ -454,7 +454,7 @@ string decToBin(string& s){
     return temp.str();
 }
 
-string binToDec(string& s){
+string Calculator::binToDec(string &s){
     //convert string to int
     int num = stoi(s);
     int result = 0;

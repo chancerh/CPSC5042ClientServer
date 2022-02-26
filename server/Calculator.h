@@ -86,8 +86,6 @@ private:
             {"(", -1},
             {")", -1},
     };
-
-    bool validateConvertorInput(string s, set<char> validChecker);
 };
 
 //#include "Calculator.cpp"
