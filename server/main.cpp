@@ -73,9 +73,10 @@ int main(int argc, char const* argv[])
     {
         printf("\nWaiting...\n");
         statusOk = serverObj->ListenForClient();
+
         //Start a new thread, that points to ProcessRPC. Inside ProcessRPC,
         // we will create a new Calc object
-        statusOk = serverObj->ProcessRPC(); // Launch thread
+        //statusOk = serverObj->ProcessRPC(); // Launch thread
     }
 
     //delete the serverObj and free up its memory

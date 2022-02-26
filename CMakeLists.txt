@@ -7,6 +7,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -Wall")
 include_directories(server)
 include_directories(client)
 
+find_package( Threads )
+
 add_executable(startClient client/ClientCS.cpp)
 
-add_executable(startServer server/main.cpp server/RPCServer.cpp server/RPCServer.h server/Calculator.h server/Calculator.cpp)
+add_executable(startServer server/main.cpp server/RPCServer.cpp server/RPCServer.h server/Calculator.h server/Calculator.cpp server/ClientHandler.cpp server/ClientHandler.h)
+target_link_libraries( startServer ${CMAKE_THREAD_LIBS_INIT} )

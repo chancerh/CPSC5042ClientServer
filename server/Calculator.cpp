@@ -29,16 +29,17 @@ string Calculator::calculateExpression(string inExpr)
    }
 }
 
-string Calculator::convertorMenu(string s, int choice){
+string Calculator::convertorMenu(string s, string choice){
     //Validate input
     set<char> binInput = {'0', '1'};
     set<char> decInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
     set<char> hexInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                           'A', 'B', 'C', 'D', 'E', 'F'};
     string token;
+    int c = stoi(choice);
 
     do{
-        switch(choice){
+        switch(c){
             case 1:
                 printf("Convert Binary to Hexadecimal: ");
                 if(validateInputString(s, binInput)){
@@ -86,7 +87,7 @@ string Calculator::convertorMenu(string s, int choice){
             default:
                 printf("please try again! ");
         }
-    }while(choice <= 0 || choice > 5);
+    }while(c <= 0 || c > 5);
 }
 
 float Calculator::mean(vector<float> vec) 
