@@ -1,6 +1,6 @@
 # Set the g++ compiler flags to compile to the C++11 standard and to show all
 # warnings. 
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11 -g
 
 # Default behavior when typing "make" at the command line compiles both server
 # and client executables.
