@@ -119,35 +119,57 @@ float Calculator::median(vector<float> vec)
 }
 
 
+float Calculator::percentile(vector<float> vec, float nth) {
+
+    // Check that vector is not empty
+    if (vec.size() < 1)
+        throw invalid_argument("Dataset in vec must have size > 0.");
+
+    // Check to see if the vector is sorted - if not, sort it. 
+    if (!is_sorted(vec.begin(), vec.end()))
+	sort(vec.begin(), vec.end());
+	
+    
+    // Get the index of the quantile. There may be two if n is even, so 
+    float index = (vec.size() - 1) * nth;
+
+    // If n is odd, indexLow and indexHigh will be the same
+    int indexLow = floor(index);
+    int indexHigh = ceil(index);
+
+    float qs = vec[indexLow];
+    float h = index - indexLow;
+    return (1-h) * qs + h * vec[indexHigh];
+}
+
+
 vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
 {
-  float initQuantCut = quantCut;
-  
+    float initQuantCut = quantCut;
+    
     // Check that vector is not empty
-  if (vec.size() < 1)
+    if (vec.size() < 1)
         throw invalid_argument("Dataset in vec must have size > 0.");
 
     vector<float> quants; // this will hold the calculated quantiles
 
-    // Sort the vector ascending
-    sort(vec.begin(), vec.end());
-    int n = vec.size();
+    // Sort the vector if it isn't already
+    // Check to see if the vector is sorted - if not, sort it. 
+    if (!is_sorted(vec.begin(), vec.end()))
+	sort(vec.begin(), vec.end());
 
+    
     while (quantCut < 1.0) {
-        if (quantCut > 1.0 | quantCut < 0.0)
+        if ((quantCut > 1.0) | (quantCut < 0.0))
             throw invalid_argument("Quantile cuts must be between 0.0 and 1.0");
 
-        // Get the index of the quantile. There may be two if n is even, so 
-        float index = (n - 1) * quantCut;
 
-        // If n is odd, indexLow and indexHigh will be the same
-        int indexLow = floor(index);
-        int indexHigh = ceil(index);
+	quants.push_back(percentile(vec, quantCut));
 
         // Either way, add the elements of indexLow and indexHigh together and
         // divide by 2.
-        float quant = (vec[indexHigh] + vec[indexLow]) / 2.0;
-        quants.push_back(quant);
+        // float quant = (vec[indexHigh] + vec[indexLow]) / 2.0;
+        // quants.push_back(quant);
 
         // Move to the next quantile
         quantCut += initQuantCut;

@@ -7,4 +7,5 @@
 startClient
 startServer
 .vscode
-
+*.el
+*.elc

@@ -12,7 +12,7 @@
 #include <vector>
 #include <iterator>
 #include "RPCServer.h"
-
+#include <regex>
 
 using namespace std;
 
@@ -190,6 +190,11 @@ bool RPCServer::ProcessRPC()
            ProcessCalcExp(arrayTokens);
         }
 
+	else if (aString == "summary")
+	{
+	    ProcessStatSummary(arrayTokens);
+	}
+
         //If RPC is not supported, print status on screen
         else
         {
@@ -306,4 +311,40 @@ void RPCServer::sendBuffer(char *szBuffer) const
    int nlen = strlen(szBuffer);
    szBuffer[nlen] = 0;
    send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+}
+
+string RPCServer::ProcessStatSummary(vector<std::string> &arrayTokens)
+{
+    vector<float> vec;
+    Calculator myCalc;
+    
+    // For now, assume someone typed in mean followed by numbers separated by spaces
+    // make a whitespace regex
+    auto const re = regex{R"(\s+)"};
+    auto const vecString =
+	vector<string>(sregex_token_iterator{begin(arrayTokens[1]), end(arrayTokens[1]), re, -1},
+		       sregex_token_iterator{});
+
+    for (string str : vecString)
+	vec.push_back(stof(str));
+
+    // Get summary statistics
+    vector<float> statSum = myCalc.summary(vec);
+
+    // put results into single string
+    string resultString;
+
+    resultString = 
+	"Min      " + to_string(statSum[0]) + "\n" +
+	"1st Qu.  " + to_string(statSum[1]) + "\n" +
+	"Median   " + to_string(statSum[2]) + "\n" +
+	"Mean     " + to_string(statSum[3]) + "\n" +
+	"3rd Qu.  " + to_string(statSum[4]) + "\n" +
+	"Max      " + to_string(statSum[5]) + "\n;0";
+
+    char* charRes = &resultString[0];
+    send(this->m_socket, charRes, strlen(charRes) + 1, 0);
+
+    return resultString;		      
+    
 }

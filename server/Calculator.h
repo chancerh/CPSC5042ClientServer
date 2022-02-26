@@ -22,7 +22,9 @@ public:
     string binToDec(string &s);
     string convertorMenu(string s, int choice);
 
-
+    //*************************************
+    // Stats functions
+    //*************************************
     // Calculate the mean of a set of numbers
     float mean(vector<float>);
 
@@ -40,6 +42,10 @@ public:
 
     // Caclulate quantiles
     vector<float> quantiles(vector<float> data, float quantCuts);
+
+    // Calculate the value representing the nth percentile (where 0 <= n <= 1)
+    float percentile(vector<float> vec, float nth);
+    
 
 
 private:

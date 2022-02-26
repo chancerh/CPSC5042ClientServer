@@ -108,7 +108,11 @@ private:
      */
     void ParseTokens(char* buffer, std::vector<std::string>& a);
 
+
+    string ProcessStatSummary(vector<std::string> &arrayTokens);
+
     //Helper function to send buffers back to client
     void sendBuffer(char *szBuffer) const;
+
 };
 
