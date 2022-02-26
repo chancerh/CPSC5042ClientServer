@@ -67,7 +67,8 @@ int main(int argc, char const* argv[])
     int sock = 0;
     struct sockaddr_in serv_addr;
     string connectRPC = "connect;";
-    string calcExpRPC = "calculateExpression;";
+    //    string calcExpRPC = "calculateExpression;";
+    string calcExpRPC = "";
     const char* logoffRPC = "disconnect;";
     char buffer[1024] = { 0 };
     const char *serverAddress = argv[1];
@@ -132,7 +133,8 @@ int main(int argc, char const* argv[])
         string expr;
         vector<string> result;
 
-        calcExpRPC = "calculateExpression;";
+        // calcExpRPC = "calculateExpression;";
+	calcExpRPC = "";
         cout << "Enter expression: ";
 
         getline(cin, expr);
