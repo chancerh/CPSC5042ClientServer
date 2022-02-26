@@ -20,7 +20,7 @@ public:
     string hexToBin(string &s);
     string decToBin(string &s);
     string binToDec(string &s);
-    string convertorMenu(string s, int choice);
+    string convertorMenu(string s, string choice);
 
     //*************************************
     // Stats functions
