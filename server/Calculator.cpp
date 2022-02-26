@@ -41,7 +41,7 @@ string Calculator::convertorMenu(string s, int choice){
         switch(choice){
             case 1:
                 printf("Convert Binary to Hexadecimal: ");
-                if(validateConvertorInput(s, binInput)){
+                if(validateInputString(s, binInput)){
                     token = binToHex(s);
                     return token;
                 }
@@ -52,7 +52,7 @@ string Calculator::convertorMenu(string s, int choice){
                 break;
             case 2:
                 printf("Convert Hexadecimal to Binary: ");
-                if(validateConvertorInput(s, hexInput)){
+                if(validateInputString(s, hexInput)){
                     token = hexToBin(s);
                     return token;
                 }
@@ -63,7 +63,7 @@ string Calculator::convertorMenu(string s, int choice){
                 break;
             case 3:
                 printf("Convert Binary to Decimal: ");
-                if(validateConvertorInput(s, binInput)){
+                if(validateInputString(s, binInput)){
                     token = binToDec(s);
                     return token;
                 }
@@ -74,7 +74,7 @@ string Calculator::convertorMenu(string s, int choice){
                 break;
             case 4:
                 printf("Convert Decimal to Binary");
-                if(validateConvertorInput(s, decInput)){
+                if(validateInputString(s, decInput)){
                     token = decToBin(s);
                     return token;
                 }
@@ -483,19 +483,6 @@ bool Calculator::validateInputString(string inExpression,
     {
        //if character not in valid set, return false
         if (validChars.find(c) == validChars.end())
-            return false;
-    }
-
-    //if all characters passed test, return true
-    return true;
-}
-
-bool Calculator::validateConvertorInput(string s,set<char> validChecker){
-    //For each character in the string
-    for (char c : s)
-    {
-        //if character not in valid set, return false
-        if (validChecker.find(c) == validChecker.end())
             return false;
     }
 
