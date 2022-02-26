@@ -163,7 +163,7 @@ bool RPCServer::ProcessRPC()
         string aString = arrayTokens[RPCTOKEN];
 
         //If we received a Connect RPC and the server is not yet connected, process the ConnectRPC
-        if ((bConnected == false) && (aString == "connect"))
+        if ((bConnected == false) && (aString == CONNECT))
         {
             bStatusOk = ProcessConnectRPC(arrayTokens);  // connect RPC
             if (bStatusOk == true)
@@ -177,7 +177,7 @@ bool RPCServer::ProcessRPC()
         }
 
         //If we received a Disconnect RPC and the server is connected, process disconnect RPC
-        else if ((bConnected == true) && (aString == "disconnect")) // disconnect RPC
+        else if ((bConnected == true) && (aString == DISCONNECT)) // disconnect RPC
         {
             bStatusOk = ProcessDisconnectRPC();
             printf("Terminating connection.\n");
@@ -185,7 +185,7 @@ bool RPCServer::ProcessRPC()
             bContinue = false; // we are going to leave this loop, as we are done
         }
 
-        else if(aString == "calculateExpression")
+        else if(aString == CALC_EXPR)
         {
            ProcessCalcExp(arrayTokens);
         }
@@ -279,7 +279,7 @@ bool RPCServer::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     return m_authenticated;
 }
 
-string RPCServer::ProcessCalcExp(vector<std::string> &arrayTokens)
+void RPCServer::ProcessCalcExp(vector<std::string> &arrayTokens)
 {
    //Declaring a string to store the result
    string result;
@@ -291,21 +291,26 @@ string RPCServer::ProcessCalcExp(vector<std::string> &arrayTokens)
    try
    {
       result = myCalc.calculateExpression(arrayTokens[1]);
-      result = result + ";0;";
+      result = result + ";" + SUCCESS;
    }
    //if invalid argument, return failure status
    catch (invalid_argument& e)
    {
-      result = "0;-1;";
+      result = "0;" + GENERAL_FAIL;
    }
 
+   //Copy result to buffer and send buffer to client
    strcpy(szBuffer, result.c_str());
+   sendBuffer(szBuffer);
 
+}
+
+void RPCServer::sendBuffer(char *szBuffer) const
+{
+   //Add null termination and send buffer to client
    int nlen = strlen(szBuffer);
    szBuffer[nlen] = 0;
-   send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
-
-   return result;
+   send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
 }
 
 string RPCServer::ProcessStatSummary(vector<std::string> &arrayTokens)

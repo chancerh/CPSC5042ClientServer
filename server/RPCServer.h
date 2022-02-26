@@ -66,6 +66,15 @@ private:
     bool m_authenticated; //flag to track if client provided correct credentials and is logged in
     unordered_map<string,string> m_users; //map storing all username and password pairs
 
+    //SUPPORTED RPCs
+    const string CONNECT = "connect",
+                  DISCONNECT = "disconnect",
+                  CALC_EXPR = "calculateExpression";
+
+    //RPC Status
+    const string SUCCESS = "0;",
+                  GENERAL_FAIL = "-1;";
+
 
     /**
      * The ProcessConnectRPC() function process a connect RPC by validating the input credentials. If input credentials
@@ -89,7 +98,7 @@ private:
     *                      arrayTokens[1] contains the mathematical expression
     * @return A boolean indicating if the input credentials are correct
     */
-    string ProcessCalcExp(vector<std::string>& arrayTokens);
+    void ProcessCalcExp(vector<std::string>& arrayTokens);
 
     /**
      * The ParseTokens() function processes an input char array buffer containing the RPC parameters, and parses it
@@ -99,6 +108,11 @@ private:
      */
     void ParseTokens(char* buffer, std::vector<std::string>& a);
 
+
     string ProcessStatSummary(vector<std::string> &arrayTokens);
+
+    //Helper function to send buffers back to client
+    void sendBuffer(char *szBuffer) const;
+
 };
 

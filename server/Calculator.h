@@ -11,36 +11,42 @@
 
 using namespace std;
 
-class Calculator
-{
+class Calculator {
 public:
 
     string calculateExpression(string inExpr);
 
-    string binToHex(string& s);
-    string hexToBin(string& s);
-    string decToBin(string& s);
-    string binToDec(string& s);
-
+    string binToHex(string &s);
+    string hexToBin(string &s);
+    string decToBin(string &s);
+    string binToDec(string &s);
+    string convertorMenu(string s, int choice);
 
     //*************************************
     // Stats functions
     //*************************************
     // Calculate the mean of a set of numbers
     float mean(vector<float>);
+
     // Calculate the median of a set of numbers
     float median(vector<float>);
+
     // Calculate the sample variance (meaning it uses n-1 in the denominator)
     float var(const vector<float> &vec);
-    // calculate the sample standard deviation (meaning it uses n-1 in the denomicator). 
+
+    // calculate the sample standard deviation (meaning it uses n-1 in the denomicator).
     float sd(vector<float>);
+
     // calculate a 5 number + mean summary
     vector<float> summary(const vector<float> &vec);
+
     // Caclulate quantiles
     vector<float> quantiles(vector<float> data, float quantCuts);
+
     // Calculate the value representing the nth percentile (where 0 <= n <= 1)
     float percentile(vector<float> vec, float nth);
     
+
 
 private:
     /**
@@ -49,14 +55,14 @@ private:
      * @param inExpression Input algebraic expression
      * @return A vector containing the operands and operators in order entered
      */
-    vector<string> expTokenize(string& inExpression);
+    vector<string> expTokenize(string &inExpression);
 
     /**
      * Converts order of a vector of operands and operators into RPN order
      * @param expTokens Vector containing the original expression tokens
      * @return A vector containing the operands and operators in RPN ordering
      */
-    vector<string> convertToRPN(vector<string>& expTokens);
+    vector<string> convertToRPN(vector<string> &expTokens);
 
 
     /**
@@ -65,7 +71,7 @@ private:
      * @param rpnStack Vector containing the expression in RPN notation
      * @return The result of the calculation
      */
-    double calculateRPN(vector<string>& rpnStack);
+    double calculateRPN(vector<string> &rpnStack);
 
     /**
      * Helper function to validate input strings
@@ -73,20 +79,24 @@ private:
      * @param validChars Set of valid char values (e.g. {'1', '2', '*', '.'})
      * @return True if all string characters are found in set, otherwise false.
      */
-    bool validateInputString (string inExpression, set<char> validChars);
+    bool validateInputString(string inExpression, set<char> validChars);
 
     //Unordered map containing the supported operators for calculateRPN
     // function, and their precedence order
-    unordered_map<string, int> precedenceMap ={
-            { "^", 3},
-            { "*", 2},
-            { "/", 2},
-            { "+", 1},
-            { "-", 1},
-            { "(", -1},
-            { ")", -1},
+    unordered_map<string, int> precedenceMap = {
+            {"^", 3},
+            {"*", 2},
+            {"/", 2},
+            {"+", 1},
+            {"-", 1},
+            {"(", -1},
+            {")", -1},
     };
 
+    //Exception Strings
+    const string INVALID_EXPRESSION = "Invalid expression entered.",
+                  INVALID_OPERATOR = "Invalid operator entered.",
+                  INVALID_ARG = "Invalid argument entered.";
 };
 
 //#include "Calculator.cpp"
