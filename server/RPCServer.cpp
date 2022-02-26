@@ -330,12 +330,12 @@ string RPCServer::ProcessStatSummary(vector<std::string> &arrayTokens)
     string resultString;
 
     resultString = 
-	"0;Min      " + to_string(statSum[0]) + "\n" +
+	"Min      " + to_string(statSum[0]) + "\n" +
 	"1st Qu.  " + to_string(statSum[1]) + "\n" +
 	"Median   " + to_string(statSum[2]) + "\n" +
 	"Mean     " + to_string(statSum[3]) + "\n" +
 	"3rd Qu.  " + to_string(statSum[4]) + "\n" +
-	"Max      " + to_string(statSum[5]) + "\n";
+	"Max      " + to_string(statSum[5]) + "\n;0";
 
     char* charRes = &resultString[0];
     send(this->m_socket, charRes, strlen(charRes) + 1, 0);
