@@ -23,7 +23,9 @@ public:
     string binToDec(string& s);
 
 
-
+    //*************************************
+    // Stats functions
+    //*************************************
     // Calculate the mean of a set of numbers
     float mean(vector<float>);
     // Calculate the median of a set of numbers
@@ -36,6 +38,8 @@ public:
     vector<float> summary(const vector<float> &vec);
     // Caclulate quantiles
     vector<float> quantiles(vector<float> data, float quantCuts);
+    // Calculate the value representing the nth percentile (where 0 <= n <= 1)
+    float percentile(vector<float> vec, float nth);
     
 
 private:
