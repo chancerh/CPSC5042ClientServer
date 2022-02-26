@@ -86,6 +86,11 @@ private:
             {"(", -1},
             {")", -1},
     };
+
+    //Exception Strings
+    const string INVALID_EXPRESSION = "Invalid expression entered.",
+                  INVALID_OPERATOR = "Invalid operator entered.",
+                  INVALID_ARG = "Invalid argument entered.";
 };
 
 //#include "Calculator.cpp"
