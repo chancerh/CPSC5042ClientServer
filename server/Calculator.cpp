@@ -25,7 +25,7 @@ string Calculator::calculateExpression(string inExpr)
    }
    else
    {
-      throw invalid_argument("Invalid input expression.");
+      throw invalid_argument(INVALID_EXPRESSION);
    }
 }
 
@@ -343,6 +343,8 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
             case '/':
                operand2 = operand2 / operand1;
                break;
+            default:
+               throw invalid_argument(INVALID_OPERATOR);
          }
 
          //remove the operands from the stack, and add result to the stack
