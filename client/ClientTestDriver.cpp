@@ -71,19 +71,20 @@ int main(int argc, char const* argv[])
       return -1;
    }
 
-   pthread_t testThreads[10];
+   const int NUM_THREADS = 20;
+   pthread_t testThreads[NUM_THREADS];
    struct hostAddr myHostAddr;
    myHostAddr.ipAddr = argv[1];
    myHostAddr.port = argv[2];
 
-   for (int i = 0; i < 10; i++)
+   for (int i = 0; i < NUM_THREADS; i++)
    {
       pthread_create(&testThreads[i], nullptr, threadExecution, (void *)
       &myHostAddr);
       usleep(100);
    }
 
-   for (int i = 0; i < 10; i++)
+   for (int i = 0; i < NUM_THREADS; i++)
    {
       pthread_join(testThreads[i], nullptr);
    }
@@ -135,6 +136,7 @@ void* threadExecution(void* inHostAddr)
          if (connected == '0')
          {
             cout << "\nSocket: " << sock << ", Login successful!" << endl;
+            usleep(10000);
          }
          else
          {
@@ -158,7 +160,12 @@ void* threadExecution(void* inHostAddr)
 
       // calcExpRPC = "calculateExpression;";
 
-      expr = "2^3 - 4 + 17 / 3";
+      expr = to_string(rand() % 1000) + "/" +
+              to_string(rand() % 1000) + " - " + to_string(rand() % 1000) +
+              to_string(rand() % 1000) + " ^ " + "2" + " +" +
+              to_string(rand() % 1000) + "*" + to_string(rand() % 1000);
+
+      cout << "\nSocket: " << sock << ", " << expr << endl;
       calcExpRPC = calcExpRPC + expr + ";";
       strcpy(buffer, &calcExpRPC[0]);
 
@@ -175,7 +182,7 @@ void* threadExecution(void* inHostAddr)
 
       if(result[1] == "0")
       {
-         printf("Socket :%d, %s\n",sock, result[0].c_str());
+         printf("\nSocket: %d, %s\n",sock, result[0].c_str());
       }
       else
       {
@@ -186,7 +193,7 @@ void* threadExecution(void* inHostAddr)
    // Do a Disconnect Message
    if (bConnect == true)
    {
-      cout << "Disconnecting from Server" << endl;
+      cout << "\nSocket: " << sock << ", Disconnecting from Server" << endl;
 
       //reset buffers
       memset(buffer, 0 , 1024);
