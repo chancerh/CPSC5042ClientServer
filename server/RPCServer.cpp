@@ -139,7 +139,7 @@ bool RPCServer::ListenForClient()
         pthread_t thread_id;
         printf("\n-> Launching Thread\n");
 
-        int socket = m_socket;
+        //int socket = m_socket;
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
         printf("Created the thread...\n");
         //store thread_id in thread container

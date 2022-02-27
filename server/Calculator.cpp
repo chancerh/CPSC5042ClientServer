@@ -29,7 +29,7 @@ string Calculator::calculateExpression(string inExpr)
    }
 }
 
-string Calculator::convertorMenu(string s, string choice){
+string Calculator::convertorMenu(string choice, string s){
     //Validate input
     set<char> binInput = {'0', '1'};
     set<char> decInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -37,57 +37,47 @@ string Calculator::convertorMenu(string s, string choice){
                           'A', 'B', 'C', 'D', 'E', 'F'};
     string token;
     int c = stoi(choice);
-
-    do{
-        switch(c){
-            case 1:
-                printf("Convert Binary to Hexadecimal: ");
-                if(validateInputString(s, binInput)){
-                    token = binToHex(s);
-                    return token;
-                }
-                else
-                {
-                    throw invalid_argument("Invalid input expression.");
-                }
+    switch(c){
+        case 1:
+            if(validateInputString(s, binInput)){
+                token = binToDec(s);
                 break;
-            case 2:
-                printf("Convert Hexadecimal to Binary: ");
-                if(validateInputString(s, hexInput)){
-                    token = hexToBin(s);
-                    return token;
-                }
-                else
-                {
-                    throw invalid_argument("Invalid input expression.");
-                }
+            }
+            else
+            {
+                throw invalid_argument("Invalid input expression.");
+            }
+        case 2:
+            if(validateInputString(s, hexInput)){
+                token = decToBin(s);
                 break;
-            case 3:
-                printf("Convert Binary to Decimal: ");
-                if(validateInputString(s, binInput)){
-                    token = binToDec(s);
-                    return token;
-                }
-                else
-                {
-                    throw invalid_argument("Invalid input expression.");
-                }
+            }
+            else
+            {
+                throw invalid_argument("Invalid input expression.");
+            }
+        case 3:
+            if(validateInputString(s, hexInput)){
+                token = hexToDec(s);
                 break;
-            case 4:
-                printf("Convert Decimal to Binary");
-                if(validateInputString(s, decInput)){
-                    token = decToBin(s);
-                    return token;
-                }
-                else
-                {
-                    throw invalid_argument("Invalid input expression.");
-                }
+            }
+            else
+            {
+                throw invalid_argument("Invalid input expression.");
+            }
+        case 4:
+            if(validateInputString(s, decInput)){
+                token = decToBin(s);
                 break;
-            default:
-                printf("please try again! ");
-        }
-    }while(c <= 0 || c > 5);
+            }
+            else
+            {
+                throw invalid_argument("Invalid input expression.");
+            }
+        default:
+            throw invalid_argument(INVALID_EXPRESSION);
+    }
+    return token;
 }
 
 float Calculator::mean(vector<float> vec) 
@@ -392,7 +382,7 @@ string Calculator::binToHex(string &s) {
     string tmp, bits;
     vector<string> container;
 
-    for(int i = 0; i < container.size()-3; i+=4) {
+    for(unsigned long i = 0; i < container.size()-3; i+=4) {
         bits = s.substr(i, 4);
         if(bits == "0000") {
             tmp += '0';
@@ -424,8 +414,10 @@ string Calculator::binToHex(string &s) {
             tmp += 'D';
         } else if(bits == "1110") {
             tmp += 'E';
-        } else {
+        } else if(bits == "1111"){
             tmp += 'F';
+        } else{
+            throw invalid_argument(INVALID_EXPRESSION);
         }
     }
     // Removes leading zeroes, output '0' if all zeroes
@@ -435,24 +427,57 @@ string Calculator::binToHex(string &s) {
 string Calculator::hexToBin(string &s) {
     string tmp;
     vector<unsigned long> hexContainer;
-    for(int i = 0; i < s.size(); i++) {
+    for(unsigned long i = 0; i < s.size(); i++) {
         switch(toupper(hexContainer[i])) {
-            case '0': tmp += "0000";
-            case '1': tmp += "0001";
-            case '2': tmp += "0010";
-            case '3': tmp += "0011";
-            case '4': tmp += "0100";
-            case '5': tmp += "0101";
-            case '6': tmp += "0110";
-            case '7': tmp += "0111";
-            case '8': tmp += "1000";
-            case '9': tmp += "1001";
-            case 'A': tmp += "1010";
-            case 'B': tmp += "1011";
-            case 'C': tmp += "1100";
-            case 'D': tmp += "1101";
-            case 'E': tmp += "1110";
-            default: tmp += "1111";
+            case '0':
+                tmp += "0000";
+                break;
+            case '1':
+                tmp += "0001";
+                break;
+            case '2':
+                tmp += "0010";
+                break;
+            case '3':
+                tmp += "0011";
+                break;
+            case '4':
+                tmp += "0100";
+                break;
+            case '5':
+                tmp += "0101";
+                break;
+            case '6':
+                tmp += "0110";
+                break;
+            case '7':
+                tmp += "0111";
+                break;
+            case '8':
+                tmp += "1000";
+                break;
+            case '9':
+                tmp += "1001";
+                break;
+            case 'A':
+                tmp += "1010";
+                break;
+            case 'B':
+                tmp += "1011";
+                break;
+            case 'C':
+                tmp += "1100";
+                break;
+            case 'D':
+                tmp += "1101";
+                break;
+            case 'E':
+                tmp += "1110";
+                break;
+            case 'F':
+                tmp += "1111";
+                break;
+            default: throw invalid_argument(INVALID_EXPRESSION);
         }
     }
     return tmp;
@@ -514,6 +539,46 @@ bool Calculator::validateInputString(string inExpression,
     //if all characters passed test, return true
     return true;
 }
+
+string Calculator::hexToDec(string s) {
+    unsigned long len = s.size();
+
+    // Initializing base value to 1, i.e 16^0
+    int base = 1;
+
+    int dec_val = 0;
+
+    // Extracting characters as digits from last character
+    for (unsigned long i=len-1; i>=0; i--)
+    {
+        // if character lies in '0'-'9', converting
+        // it to integral 0-9 by subtracting 48 from
+        // ASCII value.
+        if (s[i]>='0' && s[i]<='9')
+        {
+            dec_val += (s[i] - 48)*base;
+
+            // incrementing base by power
+            base = base * 16;
+        }
+
+            // if character lies in 'A'-'F' , converting
+            // it to integral 10 - 15 by subtracting 55
+            // from ASCII value
+        else if (s[i]>='A' && s[i]<='F')
+        {
+            dec_val += (s[i] - 55)*base;
+
+            // incrementing base by power
+            base = base*16;
+        }
+    }
+
+    return to_string(dec_val);
+}
+
+//string Calculator::decToHex(string s) {
+//}
 
 
 
