@@ -1,6 +1,6 @@
-# Set the g++ compiler flags to compile to the C++11 standard and to show all
+# Set the g++ compiler flags to compile to the C++17 standard and to show all
 # warnings. 
-CXXFLAGS = -std=c++11 -g
+CXXFLAGS = -std=c++17 -g -lpthread -pthread
 
 # Default behavior when typing "make" at the command line compiles both server
 # and client executables.
@@ -13,7 +13,7 @@ startClient : client/ClientCS.cpp
 
 # Link the compiled main and RPCServe code to create the server executable
 
-startServer : server/main.cpp server/RPCServer.cpp server/Calculator.cpp server/RPCServer.cpp
+startServer : server/main.cpp server/RPCServer.cpp server/Calculator.cpp server/RPCServer.cpp server/ClientHandler.cpp
 	$(CXX) $(CXXFLAGS) $^ -o startServer
 
 # startServer : server/Calculator.h server/Calculator.cpp  server/main.cpp server/RPCServer.h server/RPCServer.cpp
