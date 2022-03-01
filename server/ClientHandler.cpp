@@ -5,7 +5,11 @@
 
 #include "ClientHandler.h"
 #include <regex>
-
+#include "pthread.h"
+#include <unistd.h>
+#include <sys/socket.h>
+#include "Calculator.h"
+#include <iostream>
 using namespace std;
 
 /**
@@ -33,7 +37,7 @@ ClientHandler::~ClientHandler() {};
 /**
  * ProcessRPC will examine buffer and will essentially control
  */
-bool ClientHandler::ProcessRPC()
+bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
 {
     char buffer[1024] = { 0 };
     std::vector<std::string> arrayTokens;
@@ -50,7 +54,10 @@ bool ClientHandler::ProcessRPC()
         printf("Waiting for client to send buffer\n");
 
         valread = read(this->m_socket, buffer, sizeof(buffer));
-
+	pthread_mutex_lock(lock);
+	*rpcCounter += 1;
+	cout << "Total number of RPCs is now" << *rpcCounter << endl;
+	pthread_mutex_unlock(lock);
         printf("Received buffer from client: %s\n", buffer);
 
         if (valread <= 0)
