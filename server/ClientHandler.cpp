@@ -96,6 +96,10 @@ bool ClientHandler::ProcessRPC()
             ProcessCalcExp(arrayTokens);
         }
 
+        else if(aString == "HexConversion"){
+            HexConversionRPC(arrayTokens);
+        }
+
         else if (aString == "summary")
         {
             ProcessStatSummary(arrayTokens);
@@ -207,6 +211,44 @@ void ClientHandler::ProcessCalcExp(vector<std::string> &arrayTokens)
     {
         result = "0;" + GENERAL_FAIL;
     }
+
+    //Copy result to buffer and send buffer to client
+    strcpy(szBuffer, result.c_str());
+    sendBuffer(szBuffer);
+
+}
+
+void ClientHandler::HexConversionRPC(vector<std::string> &arrayTokens)
+{
+    //Declaring a string to store the result
+    string result;
+    char szBuffer[80];
+
+    Calculator myCalc;
+
+    //Calculate expression
+//    try
+//    {
+        // Hex to Dec
+        if(arrayTokens[1] == "0")
+        {
+            result = myCalc.convertorMenu( "3", arrayTokens[2]);
+        }
+        // Dec to Hex
+        else if (arrayTokens[1] == "1"){
+            result = myCalc.convertorMenu( "4", arrayTokens[2]);
+            result = myCalc.convertorMenu( "1", result );
+        }
+        else{
+            throw invalid_argument("Invalid!");
+        }
+        result = result + ";" + SUCCESS;
+//    }
+//    //if invalid argument, return failure status
+//    catch (invalid_argument& e)
+//    {
+//        result = "0;" + GENERAL_FAIL;
+//    }
 
     //Copy result to buffer and send buffer to client
     strcpy(szBuffer, result.c_str());

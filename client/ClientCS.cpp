@@ -134,7 +134,9 @@ int main(int argc, char const* argv[])
         vector<string> result;
 
         // calcExpRPC = "calculateExpression;";
+
 	calcExpRPC = "calculateExpression;";
+
         cout << "Enter expression: ";
 
         getline(cin, expr);
@@ -160,6 +162,42 @@ int main(int argc, char const* argv[])
         else
         {
            printf("%s\n", "Invalid expression.");
+        }
+    }
+
+    if (bConnect == true)
+    {
+        string expr, choice;
+        vector<string> result;
+
+        // calcExpRPC = "calculateExpression;";
+        calcExpRPC = "HexConversion;";
+        cout << "Enter Choice: 0:hex to decimal 1:decimal to hex: \n";
+
+        getline(cin, choice);
+        cout << "Enter number to be converted: ";
+        getline(cin, expr);
+        calcExpRPC = calcExpRPC + choice + ";" + expr + ";";
+        strcpy(buffer, &calcExpRPC[0]);
+
+        //Add a null terminator
+        int nlen = strlen(buffer);
+        buffer[nlen] = 0;
+
+        //Send the created RPC buffer to server
+        send(sock, buffer, strlen(buffer) + 1, 0);
+
+        //Read from server
+        read(sock, buffer, 1024);
+        ParseTokens(buffer, result);
+
+        if(result[1] == "0")
+        {
+            printf("%s\n", result[0].c_str());
+        }
+        else
+        {
+            printf("%s\n", "Invalid expression.");
         }
     }
 

@@ -69,6 +69,7 @@ private:
      */
     void ParseTokens(char* buffer, std::vector<std::string>& a);
 
+    void HexConversionRPC(vector<std::string> &arrayTokens);
 
     string ProcessStatSummary(vector<std::string> &arrayTokens);
 
