@@ -24,7 +24,8 @@ public:
 private:
     int m_socket; //socket number
     bool m_authenticated; //flag to track if client provided correct credentials and is logged in
-    unordered_map<string,string> m_users; //map storing all username and password pairs
+    unordered_map<string,string> m_users; //map storing all username and
+    // password pairs
 
     //SUPPORTED RPCs
     const string CONNECT = "connect",

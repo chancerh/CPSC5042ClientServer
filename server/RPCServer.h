@@ -5,11 +5,11 @@
 
 #pragma once
 #include <unistd.h>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/socket.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <netinet/in.h>
-#include <string.h>
+#include <cstring>
 #include <vector>
 #include <iterator>
 #include <unordered_map>
@@ -52,7 +52,7 @@ public:
      * Processes incoming RPCs by parsing the input arguments and calling the appropriate functions
      * @return Always TRUE
      */
-    bool ProcessRPC();
+    //bool ProcessRPC();
 
 
 
