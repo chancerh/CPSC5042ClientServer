@@ -43,9 +43,43 @@ void ParseTokens(char* buffer, std::vector<std::string>& a);
  */
 bool ConnectToServer(const char *serverAddress, int port, int & sock);
 
+/**
+ * Prompt user to enter the options we have given:
+ * 1. basic calculator
+ * 2. Statistic
+ * 3. Conversion
+ * 4. Quit program
+ *
+ */
+void userInterface();
+
+/**
+ * Function to process basic calculator
+ *
+ */
+void processCalcExpression();
+
+/**
+ * Function to process conversion among binary, decimal, hexadecimal expression
+ *
+ */
+void processConversion();
+
 /******************************************************************************/
 /********************** End of Function Prototypes ****************************/
 /******************************************************************************/
+
+//initialize data
+int sock = 0;
+struct sockaddr_in serv_addr;
+string connectRPC = "connect;";
+string calcExpRPC = "calculateExpression;";
+//string calcExpRPC = "";
+const char* logoffRPC = "disconnect;";
+char buffer[1024] = { 0 };
+char connected;
+const int SLEEP_TIME = 10;
+bool bConnect = false;
 
 int main(int argc, char const* argv[])
 {
@@ -63,24 +97,21 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
-    //initialize data
-    int sock = 0;
-    struct sockaddr_in serv_addr;
-    string connectRPC = "connect;";
-    string calcExpRPC = "calculateExpression;";
-    //string calcExpRPC = "";
-    const char* logoffRPC = "disconnect;";
-    char buffer[1024] = { 0 };
     const char *serverAddress = argv[1];
     const int port = atoi(argv[2]);
-    char connected;
-    const int SLEEP_TIME = 10;
-    bool bConnect = false;
-
-
 
     bConnect = ConnectToServer(serverAddress, port, sock);
 
+    // if we fail to connect to server, exit the program
+    if(!bConnect){
+        cout << "Fail to connect to server, exiting program.." << endl;
+        return -1;
+    }
+
+    // implement user interface
+    userInterface();
+
+    // start plugging in interface
     //testing if client connect to server
     if (bConnect == true)
     {
@@ -128,78 +159,6 @@ int main(int argc, char const* argv[])
 //    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
 //    sleep(SLEEP_TIME)
 
-    if (bConnect == true)
-    {
-        string expr;
-        vector<string> result;
-
-        // calcExpRPC = "calculateExpression;";
-
-	calcExpRPC = "calculateExpression;";
-
-        cout << "Enter expression: ";
-
-        getline(cin, expr);
-        getline(cin, expr);
-        calcExpRPC = calcExpRPC + expr + ";";
-        strcpy(buffer, &calcExpRPC[0]);
-
-        //Add a null terminator
-        int nlen = strlen(buffer);
-        buffer[nlen] = 0;
-
-        //Send the created RPC buffer to server
-        send(sock, buffer, strlen(buffer) + 1, 0);
-
-        //Read from server
-        read(sock, buffer, 1024);
-        ParseTokens(buffer, result);
-
-        if(result[1] == "0")
-        {
-           printf("%s\n", result[0].c_str());
-        }
-        else
-        {
-           printf("%s\n", "Invalid expression.");
-        }
-    }
-
-    if (bConnect == true)
-    {
-        string expr, choice;
-        vector<string> result;
-
-        // calcExpRPC = "calculateExpression;";
-        calcExpRPC = "HexConversion;";
-        cout << "Enter Choice: 0:hex to decimal 1:decimal to hex: \n";
-
-        getline(cin, choice);
-        cout << "Enter number to be converted: ";
-        getline(cin, expr);
-        calcExpRPC = calcExpRPC + choice + ";" + expr + ";";
-        strcpy(buffer, &calcExpRPC[0]);
-
-        //Add a null terminator
-        int nlen = strlen(buffer);
-        buffer[nlen] = 0;
-
-        //Send the created RPC buffer to server
-        send(sock, buffer, strlen(buffer) + 1, 0);
-
-        //Read from server
-        read(sock, buffer, 1024);
-        ParseTokens(buffer, result);
-
-        if(result[1] == "0")
-        {
-            printf("%s\n", result[0].c_str());
-        }
-        else
-        {
-            printf("%s\n", "Invalid expression.");
-        }
-    }
 
     // Do a Disconnect Message
     if (bConnect == true)
@@ -241,6 +200,112 @@ int main(int argc, char const* argv[])
     return 0;
 }
 
+void userInterface(){
+    int userInput;
+    const int CalcExpression = 1,
+              CalcAvg = 2,
+              CalcConversion = 3,
+              quitProgram = 4;
+
+    cout << "*******************************************" << endl;
+    cout << "*****************   Menu   ****************" << endl;
+    cout << "*******************************************" << endl;
+
+    cout << "1. Calculator : "
+            "2. Statistic : "
+            "3. Conversion (Binary/Decimal/Hexdecimal) :  "
+            "4. Quit" << endl;
+    cin >> userInput;
+    do{
+        switch(userInput){
+            case CalcExpression:
+                processCalcExpression();
+                break;
+            case CalcAvg:
+                // placeholder
+                cout << " " << endl;
+                break;
+            case CalcConversion:
+                processConversion();
+                break;
+            default:
+                break;
+        }
+    }while(userInput != quitProgram);
+}
+
+void processCalcExpression(){
+
+    string expr;
+    vector<string> result;
+
+    // calcExpRPC = "calculateExpression;";
+
+    calcExpRPC = "calculateExpression;";
+
+    cout << "Enter expression: ";
+
+    getline(cin, expr);
+    getline(cin, expr);
+    calcExpRPC = calcExpRPC + expr + ";";
+    strcpy(buffer, &calcExpRPC[0]);
+
+    //Add a null terminator
+    int nlen = strlen(buffer);
+    buffer[nlen] = 0;
+
+    //Send the created RPC buffer to server
+    send(sock, buffer, strlen(buffer) + 1, 0);
+
+    //Read from server
+    read(sock, buffer, 1024);
+    ParseTokens(buffer, result);
+
+    if(result[1] == "0")
+    {
+        printf("%s\n", result[0].c_str());
+    }
+    else
+    {
+        printf("%s\n", "Invalid expression.");
+    }
+}
+
+void processConversion(){
+    string expr, choice;
+    vector<string> result;
+
+    // calcExpRPC = "calculateExpression;";
+    calcExpRPC = "HexConversion;";
+    cout << "Enter Choice: 0:hex to decimal 1:decimal to hex: \n";
+
+    getline(cin, choice);
+    cout << "Enter number to be converted: ";
+    getline(cin, expr);
+    calcExpRPC = calcExpRPC + choice + ";" + expr + ";";
+    strcpy(buffer, &calcExpRPC[0]);
+
+    //Add a null terminator
+    int nlen = strlen(buffer);
+    buffer[nlen] = 0;
+
+    //Send the created RPC buffer to server
+    send(sock, buffer, strlen(buffer) + 1, 0);
+
+    //Read from server
+    read(sock, buffer, 1024);
+    ParseTokens(buffer, result);
+
+    if(result[1] == "0")
+    {
+        printf("%s\n", result[0].c_str());
+    }
+    else
+    {
+        printf("%s\n", "Invalid expression.");
+    }
+
+}
 
 string getCredentials()
 {
