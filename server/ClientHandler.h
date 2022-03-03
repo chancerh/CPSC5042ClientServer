@@ -28,9 +28,14 @@ private:
     // password pairs
 
     //SUPPORTED RPCs
+    //Conversion parted added and fixed by Jusmin 3/2/22
     const string CONNECT = "connect",
             DISCONNECT = "disconnect",
-            CALC_EXPR = "calculateExpression";
+            CALC_EXPR = "calculateExpression",
+            CALC_BINTODEC = "binToDec",
+            CALC_DECTOBIN = "decToBin",
+            CALC_HEXTOBIN = "hexToBin",
+            CALC_BINTOHEX = "binToHex";
 
     //RPC Status
     const string SUCCESS = "0;",
@@ -45,6 +50,13 @@ private:
      * @return A boolean indicating if the input credentials are correct
      */
     bool ProcessConnectRPC(vector<std::string>& arrayTokens);
+
+    /**
+     *
+     *
+     * @param arrayTokens
+     */
+    void ProcessCal(vector<std::string> &arrayTokens);
 
     /**
      * The processDisconnectRPC() disconnects the client connection from the server

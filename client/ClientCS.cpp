@@ -211,12 +211,13 @@ void userInterface(){
     cout << "*****************   Menu   ****************" << endl;
     cout << "*******************************************" << endl;
 
-    cout << "1. Calculator : "
-            "2. Statistic : "
-            "3. Conversion (Binary/Decimal/Hexdecimal) :  "
-            "4. Quit" << endl;
-    cin >> userInput;
     do{
+    cout <<  "1. Calculator : " << endl;
+    cout <<  "2. Statistic : " << endl;
+    cout <<  "3. Conversion (Binary/Decimal/Hexdecimal) : " << endl;
+    cout <<  "4. Quit" << endl;
+    cin >> userInput;
+
         switch(userInput){
             case CalcExpression:
                 processCalcExpression();
@@ -235,7 +236,6 @@ void userInterface(){
 }
 
 void processCalcExpression(){
-
     string expr;
     vector<string> result;
 
@@ -272,44 +272,92 @@ void processCalcExpression(){
 }
 
 void processConversion(){
-    string expr, choice;
+    string expr;
+    int choice;
+
     vector<string> result;
 
-    // calcExpRPC = "calculateExpression;";
-    calcExpRPC = "HexConversion;";
-    cout << "Enter Choice: 0:hex to decimal 1:decimal to hex: \n";
+    ////I did not pass the choice to RPC because I want to make RPC look
+    /// the same for every function we call
+    ////ex. binToDec;11001100;
+    ////    decToBin;10;
+    ////    hexToBin;3E;
+    ////    binToHex;11001100;
+    //// so I combine all the function in ClientHandler.cpp to one.
+    ///  You can go take a look there
 
-    getline(cin, choice);
-    cout << "Enter number to be converted: ";
-    getline(cin, expr);
-    calcExpRPC = calcExpRPC + choice + ";" + expr + ";";
-    strcpy(buffer, &calcExpRPC[0]);
+    do{
+        cout << "\n*******    Conversion Menu     *******" << endl;
+        cout<<"1. Convert Decimal to Binary"<<endl;
+        cout<<"2. Convert Binary to Decimal"<<endl;
+        cout<<"3. Convert Hexadecimal to Binary"<<endl;
+        cout<<"4. Convert Binary to Hexadecimal"<<endl;
+        cout<<"5. Return to main menu"<<endl;
 
-    //Add a null terminator
-    int nlen = strlen(buffer);
-    buffer[nlen] = 0;
+        cout << "\nEnter Choice: ";
+        cin>>choice;
 
-    //Send the created RPC buffer to server
-    send(sock, buffer, strlen(buffer) + 1, 0);
+        switch(choice){
 
-    //Read from server
-    read(sock, buffer, 1024);
-    ParseTokens(buffer, result);
+            case 1:
+                calcExpRPC = "decToBin";
+                cout << "Enter number to be converted: ";
+                getline(cin, expr);
+                getline(cin, expr);
+                break;
+            case 2:
+                calcExpRPC = "binToDec";
+                cout << "Enter number to be converted: ";
+                getline(cin, expr);
+                getline(cin, expr);
+                break;
+            case 3:
+                calcExpRPC = "hexToBin";
+                cout << "Enter number to be converted: ";
+                getline(cin, expr);
+                getline(cin, expr);
+                break;
+            case 4:
+                calcExpRPC = "binToHex";
+                cout << "Enter number to be converted: ";
+                getline(cin, expr);
+                getline(cin, expr);
+                break;
+            default:
+                cout << "Return to the main menu: ";
+                break;
+        }
+        calcExpRPC = calcExpRPC + ";" + expr + ";";
+        strcpy(buffer, &calcExpRPC[0]);
+        //Add a null terminator
+        int nlen = strlen(buffer);
+        buffer[nlen] = 0;
 
-    if(result[1] == "0")
-    {
-        printf("%s\n", result[0].c_str());
+        //Send the created RPC buffer to server
+        send(sock, buffer, strlen(buffer) + 1, 0);
+
+        //Read from server
+        read(sock, buffer, 1024);
+        ParseTokens(buffer, result);
+
+        if(result[1] == "0")
+        {
+            printf("Result : %s\n", result[0].c_str());
+        }
+        else
+        {
+            printf("%s\n", "Invalid expression.");
+        }
+        result.clear();
+        sleep(1);
     }
-    else
-    {
-        printf("%s\n", "Invalid expression.");
-    }
-
+    while(choice != 5);
 }
 
 string getCredentials()
 {
-    //create terminal interface that is provided to control asynchronous communications ports
+    // create terminal interface that is provided to control asynchronous
+    // communications ports
     struct termios orig_termios;
 
     string username, password;

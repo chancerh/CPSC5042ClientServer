@@ -111,6 +111,8 @@ void* threadExecution(void* inHostAddr)
 
    bConnect = ConnectToServer(serverAddress, port, sock);
 
+
+
    //testing if client connect to server
    if (bConnect == true)
    {
