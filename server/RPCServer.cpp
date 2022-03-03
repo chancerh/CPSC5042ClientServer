@@ -15,8 +15,14 @@
 #include "ClientHandler.h"
 #include <regex>
 #include <iostream>
-
+#include "pthread.h"
 using namespace std;
+
+/* GLOBAL VARIABLES
+ *
+ */
+pthread_mutex_t lock;
+int num_rpcs = 0;
 
 /**
  * Constructor
@@ -92,6 +98,7 @@ bool RPCServer::StartServer()
  * A function to execute a thread
  */
 
+
 void* startThread(void* input)
 {
     //sleep(1);
@@ -104,8 +111,10 @@ void* startThread(void* input)
     //printf ("New thread %lu created with socket: %d\n", pthread_self(), socket);
     cout << "New thread" << pthread_self() << " created with socket: " << socket << endl;
 
+    
+    
     //Process incoming RPCs
-    cHandler->ProcessRPC();
+    cHandler->ProcessRPC(&lock, &num_rpcs);
     printf("Ending thread %lu with socket %d\n", pthread_self(), socket);
 
     //Memory cleanup
@@ -139,7 +148,12 @@ bool RPCServer::ListenForClient()
         pthread_t thread_id;
         printf("\n-> Launching Thread\n");
 
-        //int socket = m_socket;
+	int mutex_init_code = pthread_mutex_init(&lock, NULL);
+	if (mutex_init_code != 0) {
+	    cout << "Mutex initialization failed" << endl;
+	    return false;
+	}
+
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
         printf("Created the thread...\n");
         //store thread_id in thread container

@@ -6,7 +6,13 @@
 #ifndef CPSC5042CLIENTSERVER_CLIENTHANDLER_H
 #define CPSC5042CLIENTSERVER_CLIENTHANDLER_H
 
-#include "RPCServer.h"
+//#include "RPCServer.h"
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include "pthread.h"
+
+using namespace std;
 
 class ClientHandler{
 public:
@@ -19,7 +25,7 @@ public:
     *
     * @return Always TRUE
     */
-    bool ProcessRPC();
+    bool ProcessRPC(pthread_mutex_t *lock, int *rpcCounter);
 
 private:
     int m_socket; //socket number
