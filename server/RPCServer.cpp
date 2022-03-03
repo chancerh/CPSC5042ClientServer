@@ -18,11 +18,13 @@
 #include "pthread.h"
 using namespace std;
 
+
 /* GLOBAL VARIABLES
  *
  */
 pthread_mutex_t lock;
 int num_rpcs = 0;
+
 
 /**
  * Constructor
@@ -33,6 +35,11 @@ RPCServer::RPCServer(const char *serverIP, int port)
     m_rpcCount = 0;
     m_serverIP = (char *) serverIP;
     m_port = port;
+//    GlobalContext.g_rpcCount = 0;
+//    GlobalContext.g_activeConnection = 0;
+//    GlobalContext.g_threadCounts = 0;
+//    GlobalContext.g_totalConnection = 0;
+
 //    m_authenticated = false;
 //
 //    //For milestone 1 we use hardcoded values. Later milestone may read and store credentials in file

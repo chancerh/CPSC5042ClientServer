@@ -54,10 +54,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
         printf("Waiting for client to send buffer\n");
 
         valread = read(this->m_socket, buffer, sizeof(buffer));
-	pthread_mutex_lock(lock);
-	*rpcCounter += 1;
-	cout << "Total number of RPCs is now" << *rpcCounter << endl;
-	pthread_mutex_unlock(lock);
+
+	      pthread_mutex_lock(lock);
+	      *rpcCounter += 1;
+	      cout << "Total number of RPCs is now" << *rpcCounter << endl;
+	      pthread_mutex_unlock(lock);
+
         printf("Received buffer from client: %s\n", buffer);
 
         if (valread <= 0)
@@ -98,13 +100,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
             bContinue = false; // we are going to leave this loop, as we are done
         }
 
-        else if(aString == CALC_EXPR)
+        ////I combine all the checking in here. I think we can create a separate function to store these string too.
+        else if(aString == CALC_EXPR || aString == CALC_BINTOHEX || aString == CALC_BINTODEC
+                ||aString == CALC_HEXTOBIN || aString == CALC_DECTOBIN)
         {
-            ProcessCalcExp(arrayTokens);
-        }
-
-        else if(aString == "HexConversion"){
-            HexConversionRPC(arrayTokens);
+        ////call only one function (Jusmin)
+            ProcessCal(arrayTokens);
         }
 
         else if (aString == "summary")
@@ -197,6 +198,51 @@ bool ClientHandler::ProcessDisconnectRPC()
     send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
 
     return true;
+}
+
+void ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
+    //Declaring a string to store the result
+    string result;
+    char szBuffer[80];
+
+    Calculator myCalc;
+    ////combine all our function -> check which one to call
+    ////I have not use your convertor, but this use do the same thing
+    //Calculate expression
+    try
+    {
+        if(arrayTokens[0]==CALC_EXPR){
+            result = myCalc.calculateExpression(arrayTokens[1]);
+            result = result + ";" + SUCCESS;
+        }
+        else if(arrayTokens[0]==CALC_BINTODEC){
+            result = myCalc.binToDec(arrayTokens[1]);
+            result = result + ";" + SUCCESS;
+        }
+        else if(arrayTokens[0]==CALC_DECTOBIN){
+            result = myCalc.decToBin(arrayTokens[1]);
+            result = result + ";" + SUCCESS;
+        }
+        else if(arrayTokens[0]==CALC_HEXTOBIN){
+            result = myCalc.decToBin(arrayTokens[1]);
+            result = result + ";" + SUCCESS;
+        }
+        else if(arrayTokens[0]==CALC_BINTOHEX){
+            result = myCalc.decToBin(arrayTokens[1]);
+            result = result + ";" + SUCCESS;
+        }
+    }
+        //if invalid argument, return failure status
+    catch (invalid_argument& e)
+    {
+        result = "0;" + GENERAL_FAIL;
+    }
+
+    //Copy result to buffer and send buffer to client
+    strcpy(szBuffer, result.c_str());
+    sendBuffer(szBuffer);
+    printf("send out result: %s\n",szBuffer);
+
 }
 
 void ClientHandler::ProcessCalcExp(vector<std::string> &arrayTokens)
@@ -337,3 +383,5 @@ void ClientHandler::sendBuffer(char *szBuffer) const
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
 }
+
+
