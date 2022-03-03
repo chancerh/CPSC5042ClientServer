@@ -51,6 +51,12 @@ bool ClientHandler::ProcessRPC()
 
         valread = read(this->m_socket, buffer, sizeof(buffer));
 
+        //Acquire lock --> update count of RPCs received --> release lock
+        //pthread_mutex_lock(&RPCServer::lock);
+        RPCServer::GlobalContext.g_rpcCount ++;
+        printf("RPC Count: %d", RPCServer::GlobalContext.g_rpcCount);
+        pthread_mutex_unlock(&RPCServer::lock);
+
         printf("Received buffer from client: %s\n", buffer);
 
         if (valread <= 0)

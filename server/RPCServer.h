@@ -55,6 +55,18 @@ public:
     //bool ProcessRPC();
 
 
+    //create a global variable
+    static struct _GlobalContext {
+        int g_rpcCount;
+        int g_activeConnection;
+        int g_totalConnection;
+        int g_threadCounts;
+    } GlobalContext;
+
+// Create mutex lock
+    static pthread_mutex_t lock;
+
+
 
 private:
     //Member elements
