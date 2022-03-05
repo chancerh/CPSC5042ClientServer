@@ -12,9 +12,15 @@ startClient : client/ClientCS.cpp
 	$(CXX) $(CXXFLAGS) $< -o startClient
 
 # Link the compiled main and RPCServe code to create the server executable
+# Start with class names
+SERVER_CLASSES = RPCServer Calculator RPCServer ClientHandler Authenticator
 
-startServer : server/main.cpp server/RPCServer.cpp server/Calculator.cpp server/RPCServer.cpp server/ClientHandler.cpp
-	$(CXX) $(CXXFLAGS) $^ -o startServer
+# Create server/*.h
+SERVER_H = $(addsuffix .h, $(addprefix server/, $(SERVER_CLASSES)))
+# create server/*.cpp for classes but NOT main.cpp driver
+SERVER_CPP = $(addsuffix .cpp, $(addprefix server/, $(SERVER_CLASSES)))
+#
+startServer : $(SERVER_H) $(SERVER_CPP) server/main.cpp
+	$(CXX) $(CXXFLAGS) $(SERVER_CPP) server/main.cpp -o startServer
 
-# startServer : server/Calculator.h server/Calculator.cpp  server/main.cpp server/RPCServer.h server/RPCServer.cpp
-#	$(CXX) $(CXXFLAGS) server/Calculator.cpp server/main.cpp server/RPCServer.cpp -o startServer
+

@@ -23,7 +23,7 @@ pthread_mutex_t g_lock;
 
 struct GlobalContext g_globalContext;
 
-const string g_credentials = "credentials.csv";
+string g_credentials = "credentials.csv";
 
 /**
  * Constructor
