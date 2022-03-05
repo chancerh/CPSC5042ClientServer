@@ -12,12 +12,13 @@
 #include <vector>
 #include "pthread.h"
 #include "GlobalContext.h"
+#include "Authenticator.h"
 
 using namespace std;
 
 class ClientHandler{
 public:
-    ClientHandler(int socket);
+    ClientHandler(int socket, const string &fileName);
     ~ClientHandler();
 
     /**
@@ -31,6 +32,8 @@ public:
 private:
     int m_socket; //socket number
     bool m_authenticated; //flag to track if client provided correct credentials and is logged in
+    Authenticator m_authenticator;
+
     unordered_map<string,string> m_users; //map storing all username and
     // password pairs
 
