@@ -23,6 +23,8 @@ pthread_mutex_t g_lock;
 
 struct GlobalContext g_globalContext;
 
+const string g_credentials = "credentials.csv";
+
 /**
  * Constructor
  */
@@ -104,7 +106,7 @@ void* startThread(void* input)
     auto socket = *(int*)input;
 
     //Create a new thread handler object
-    ClientHandler* cHandler = new ClientHandler(socket);
+    ClientHandler* cHandler = new ClientHandler(socket, g_credentials);
     //printf ("New thread %lu created with socket: %d\n", pthread_self(), socket);
     cout << "New thread" << pthread_self() << " created with socket: " << socket << endl;
 
