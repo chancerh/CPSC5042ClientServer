@@ -1,17 +1,11 @@
 #include "Calculator.h"
-#include <algorithm> // for sort function
-#include "math.h"
-#include <stdexcept>
-#include <regex>
 
 using namespace std;
 
 string Calculator::calculateExpression(string inExpr)
 {
    //Validate input expression (i.e. containing valid characters)
-   set<char> validChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                           ',', '.', '+', '-', '*', '/', '^', '(', ')', ' '};
-   if (validateInputString(inExpr, validChars))
+   if (validateInputString(inExpr, EXP_CHAR))
    {
 
       //Parse input expression into tokens using spaces and operators as delimiters
@@ -29,61 +23,80 @@ string Calculator::calculateExpression(string inExpr)
    }
 }
 
-string Calculator::convertorMenu(string choice, string s){
-    //Validate input
-    set<char> binInput = {'0', '1'};
-    set<char> decInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    set<char> hexInput = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                          'A', 'B', 'C', 'D', 'E', 'F'};
-    string token;
+string Calculator::convertor(const string& choice, string inValue)
+{
+
+    //If input is blank, throw an exception
+    if (choice.empty())
+        throw invalid_argument(INVALID_ARG);
+
+    string result;
     int c = stoi(choice);
     switch(c){
-        case 1:
-            if(validateInputString(s, binInput)){
-                token = binToDec(s);
+        case 0:
+            if(validateInputString(inValue, BIN_CHAR)){
+                result = binToDec(inValue);
                 break;
             }
             else
             {
-                throw invalid_argument("Invalid input expression.");
+                throw invalid_argument(INVALID_ARG);
+            }
+        case 1:
+            if(validateInputString(inValue, DEC_CHAR)){
+                result = decToBin(inValue);
+                break;
+            }
+            else
+            {
+                throw invalid_argument(INVALID_ARG);
             }
         case 2:
-            if(validateInputString(s, hexInput)){
-                token = decToBin(s);
+            if(validateInputString(inValue, BIN_CHAR)){
+                result = binToHex(inValue);
                 break;
             }
             else
             {
-                throw invalid_argument("Invalid input expression.");
+                throw invalid_argument(INVALID_ARG);
             }
         case 3:
-            if(validateInputString(s, hexInput)){
-                token = hexToDec(s);
+            if(validateInputString(inValue, HEX_CHAR)){
+                result = hexToBin(inValue);
                 break;
             }
             else
             {
-                throw invalid_argument("Invalid input expression.");
+                throw invalid_argument(INVALID_ARG);
             }
         case 4:
-            if(validateInputString(s, decInput)){
-                token = decToBin(s);
+            if(validateInputString(inValue, DEC_CHAR)){
+                result = decToHex(inValue);
                 break;
             }
             else
             {
-                throw invalid_argument("Invalid input expression.");
+                throw invalid_argument(INVALID_ARG);
+            }
+        case 5:
+            if(validateInputString(inValue, HEX_CHAR)){
+                result = hexToDec(inValue);
+                break;
+            }
+            else
+            {
+                throw invalid_argument(INVALID_ARG);
             }
         default:
             throw invalid_argument(INVALID_EXPRESSION);
     }
-    return token;
+    return result;
 }
 
 float Calculator::mean(vector<float> vec) 
 {
     // Check that vector is not empty
-    if (vec.size() < 1)
+    if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");
   
     float elementSum = 0.0; // this will store the sum of elements
@@ -102,7 +115,7 @@ float Calculator::mean(vector<float> vec)
 float Calculator::median(vector<float> vec)
 {
     // Check that vector is not empty
-    if (vec.size() < 1)
+    if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");   
 
     // Then median is the .5 quantile
@@ -113,7 +126,7 @@ float Calculator::median(vector<float> vec)
 float Calculator::percentile(vector<float> vec, float nth) {
 
     // Check that vector is not empty
-    if (vec.size() < 1)
+    if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");
 
     // Check to see if the vector is sorted - if not, sort it. 
@@ -139,7 +152,7 @@ vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
     float initQuantCut = quantCut;
     
     // Check that vector is not empty
-    if (vec.size() < 1)
+    if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");
 
     vector<float> quants; // this will hold the calculated quantiles
@@ -156,13 +169,6 @@ vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
 
 
 	quants.push_back(percentile(vec, quantCut));
-
-        // Either way, add the elements of indexLow and indexHigh together and
-        // divide by 2.
-        // float quant = (vec[indexHigh] + vec[indexLow]) / 2.0;
-        // quants.push_back(quant);
-
-        // Move to the next quantile
         quantCut += initQuantCut;
     }
 
@@ -193,18 +199,46 @@ float Calculator::var(const vector<float> &vec)
 float Calculator::sd(vector<float> vec)
 {
     // Check that vector is not empty
-    if (vec.size() < 1)
+    if (vec.size() < 2)
         throw invalid_argument("Dataset in vec must have size > 1.");
 
     // unbiased sd is just the square root of the unbiased variance
     return sqrt(var(vec));
 }
 
-vector<float> Calculator::summary(const vector<float> &vec)
+string Calculator::summary(const string &inValue)
 {
+    vector<float> vec;
+
+    // For now, assume someone typed in mean followed by numbers separated by
+    // spaces make a whitespace regex
+    auto const re = regex{R"(\s+)"};
+
+    //Check that all the input characters are valid
+    if (!validateInputString(inValue, FLOAT_CHAR))
+        throw new invalid_argument(INVALID_ARG);
+
+    auto const vecString =
+            vector<string>(sregex_token_iterator{begin(inValue),
+                                                 end(inValue), re, -1},
+                           sregex_token_iterator{});
+
+    // put results into single string
+    string resultString;
+
+    for (string str : vecString)
+    {
+        try {
+            vec.push_back(stof(str));
+        }
+        catch(const invalid_argument& is)
+        {
+            throw new invalid_argument(INVALID_ARG);
+        }
+    }
     // Check that vector is not empty
-    if (vec.size() < 1)
-        throw invalid_argument("Dataset in vec must have size > 0.");
+    if (vec.empty())
+        throw invalid_argument(INVALID_ARG);
     
     // This will hold the results of the calculations and be returned
     vector<float> summaryOut;
@@ -213,6 +247,7 @@ vector<float> Calculator::summary(const vector<float> &vec)
     auto max = *max_element(vec.begin(), vec.end());
     auto quartiles = quantiles(vec, .25);
     auto avg = mean(vec);
+    auto med = median(vec);
      
     summaryOut.push_back(min);
     summaryOut.push_back(quartiles[0]);
@@ -220,10 +255,28 @@ vector<float> Calculator::summary(const vector<float> &vec)
     summaryOut.push_back(avg);
     summaryOut.push_back(quartiles[2]);
     summaryOut.push_back(max);
+    if (vec.size() > 1)
+    {
+        auto stdDev = sd(vec);
+        auto variance = var(vec);
+        summaryOut.push_back(stdDev);
+        summaryOut.push_back(variance);
+    }
+    resultString =
+            "Min      " + to_string(summaryOut[0]) + "\n" +
+            "1st Qu.  " + to_string(summaryOut[1]) + "\n" +
+            "Median   " + to_string(summaryOut[2]) + "\n" +
+            "Mean     " + to_string(summaryOut[3]) + "\n" +
+            "3rd Qu.  " + to_string(summaryOut[4]) + "\n" +
+            "Max      " + to_string(summaryOut[5]) + "\n";
 
-
-    return summaryOut;
-
+    if (vec.size() > 1)
+    {
+        resultString = resultString +
+                       "Std. Dev " + to_string(summaryOut[6]) + "\n" +
+                       "Variance " + to_string(summaryOut[7]) + "\n";
+    }
+    return resultString;
 }
 
 vector<string> Calculator::expTokenize(string &inExpression)
@@ -307,7 +360,7 @@ vector<string> Calculator::convertToRPN(vector<string>& expTokens)
       {
          //while temp vector is not empty and the token has higher precedence
          // than this token, add the temp token to the stack
-         while(temp.size() > 0 &&
+         while(!temp.empty() &&
                precedenceMap[token] <= precedenceMap[temp.back()])
          {
             rpnStack.push_back(temp.back());
@@ -377,116 +430,129 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
    return operandStack[0];
 }
 
-string Calculator::binToHex(string &s) {
-    s = string(4-s.size() % 4, '0') + s;
-    string tmp, bits;
+string Calculator::binToHex(string &input) {
+    input = string(4 - input.size() % 4, '0') + input;
+    string result, bits;
     vector<string> container;
 
     for(unsigned long i = 0; i < container.size()-3; i+=4) {
-        bits = s.substr(i, 4);
-        if(bits == "0000") {
-            tmp += '0';
-        } else if(bits == "0001") {
-            tmp += '1';
-        } else if(bits == "0010") {
-            tmp += '2';
-        } else if(bits == "0011") {
-            tmp += '3';
-        } else if(bits == "0100") {
-            tmp += '4';
-        } else if(bits == "0101") {
-            tmp += '5';
-        } else if(bits == "0110") {
-            tmp += '6';
-        } else if(bits == "0111") {
-            tmp += '7';
-        } else if(bits == "1000") {
-            tmp += '8';
-        } else if(bits == "1001") {
-            tmp += '9';
-        } else if(bits == "1010") {
-            tmp += 'A';
-        } else if(bits == "1011") {
-            tmp += 'B';
-        } else if(bits == "1100") {
-            tmp += 'C';
-        } else if(bits == "1101") {
-            tmp += 'D';
-        } else if(bits == "1110") {
-            tmp += 'E';
-        } else if(bits == "1111"){
-            tmp += 'F';
-        } else{
+        bits = input.substr(i, 4);
+        if(bits == "0000")
+            result += '0';
+        else if(bits == "0001")
+            result += '1';
+        else if(bits == "0010")
+            result += '2';
+        else if(bits == "0011")
+            result += '3';
+        else if(bits == "0100")
+            result += '4';
+        else if(bits == "0101")
+            result += '5';
+        else if(bits == "0110")
+            result += '6';
+        else if(bits == "0111")
+            result += '7';
+        else if(bits == "1000")
+            result += '8';
+        else if(bits == "1001")
+            result += '9';
+        else if(bits == "1010")
+            result += 'A';
+        else if(bits == "1011")
+            result += 'B';
+        else if(bits == "1100")
+            result += 'C';
+        else if(bits == "1101")
+            result += 'D';
+        else if(bits == "1110")
+            result += 'E';
+        else if(bits == "1111")
+            result += 'F';
+        else
             throw invalid_argument(INVALID_EXPRESSION);
-        }
     }
+
     // Removes leading zeroes, output '0' if all zeroes
-    return regex_replace(tmp, regex("^0+(?!$)"), "");
+
+    result = regex_replace(result, regex("^0+(?!$)"), "");
+    return ("0x" + result);
 }
 
-string Calculator::hexToBin(string &s) {
-    string tmp;
+string Calculator::hexToBin(string& input)
+{
+    //String to store results
+    string result;
+
+    //Validate input
+    if(!validateInputString(input, HEX_CHAR))
+        throw invalid_argument(INVALID_ARG);
+
+    //Convert each char to its binary representation
     vector<unsigned long> hexContainer;
-    for(unsigned long i = 0; i < s.size(); i++) {
-        switch(toupper(hexContainer[i])) {
+    for(unsigned long i = 0; i < input.size(); i++)
+    {
+        switch(toupper(hexContainer[i]))
+        {
             case '0':
-                tmp += "0000";
+                result += "0000";
                 break;
             case '1':
-                tmp += "0001";
+                result += "0001";
                 break;
             case '2':
-                tmp += "0010";
+                result += "0010";
                 break;
             case '3':
-                tmp += "0011";
+                result += "0011";
                 break;
             case '4':
-                tmp += "0100";
+                result += "0100";
                 break;
             case '5':
-                tmp += "0101";
+                result += "0101";
                 break;
             case '6':
-                tmp += "0110";
+                result += "0110";
                 break;
             case '7':
-                tmp += "0111";
+                result += "0111";
                 break;
             case '8':
-                tmp += "1000";
+                result += "1000";
                 break;
             case '9':
-                tmp += "1001";
+                result += "1001";
                 break;
             case 'A':
-                tmp += "1010";
+                result += "1010";
                 break;
             case 'B':
-                tmp += "1011";
+                result += "1011";
                 break;
             case 'C':
-                tmp += "1100";
+                result += "1100";
                 break;
             case 'D':
-                tmp += "1101";
+                result += "1101";
                 break;
             case 'E':
-                tmp += "1110";
+                result += "1110";
                 break;
             case 'F':
-                tmp += "1111";
+                result += "1111";
                 break;
-            default: throw invalid_argument(INVALID_EXPRESSION);
+            default:
+                throw invalid_argument(INVALID_EXPRESSION);
         }
     }
-    return tmp;
+
+    return result;
 }
-string Calculator::decToBin(string &s){
-
-
+string Calculator::decToBin(string& input)
+{
     //convert string to int
-    int num = stoi(s);
+    int num = stoi(input);
     vector<unsigned int> tempResult;
     stringstream temp;
 
@@ -494,6 +560,11 @@ string Calculator::decToBin(string &s){
     while (num > 0) {
         tempResult.push_back(num % 2) ;
         num = num / 2;
+    }
+
+    //make a binary format ex. 0001
+    while(tempResult.size()%4 != 0){
+        tempResult.push_back(0);
     }
 
     //reverse order and convert
@@ -504,9 +575,10 @@ string Calculator::decToBin(string &s){
     return temp.str();
 }
 
-string Calculator::binToDec(string &s){
+string Calculator::binToDec(string &input)
+{
     //convert string to int
-    int num = stoi(s);
+    int num = stoi(input);
     int result = 0;
 
     // Initializing base value to 1, i.e 2^0
@@ -525,13 +597,47 @@ string Calculator::binToDec(string &s){
 }
 
 
-bool Calculator::validateInputString(string inExpression,
+string Calculator::hexToDec(string &input)
+{
+    if(!validateInputString(input, HEX_CHAR))
+    {
+        throw invalid_argument(INVALID_ARG);
+    }
+
+    string result; //storage for result
+
+    //Convert from Hex to Dec using previous functions
+    result = hexToBin(input);
+    result = binToDec(result);
+
+
+    return result;
+}
+
+string Calculator::decToHex(string &input)
+{
+    string result;
+    if(!validateInputString(input, DEC_CHAR))
+    {
+        throw invalid_argument(INVALID_ARG);
+    }
+    result = decToBin(input);
+    result = binToHex(input);
+
+    return ("0x" + result);
+}
+
+bool Calculator::validateInputString(const string &inExpression,
                                      set<char>validChars)
 {
-   //For each character in the string
+    //if input value is empty, return false
+    if (validChars.empty())
+        return false;
+
+    //For each character in the string
     for (char c : inExpression)
     {
-       //if character not in valid set, return false
+        //if character not in valid set, return false
         if (validChars.find(c) == validChars.end())
             return false;
     }
@@ -539,46 +645,6 @@ bool Calculator::validateInputString(string inExpression,
     //if all characters passed test, return true
     return true;
 }
-
-string Calculator::hexToDec(string s) {
-    unsigned long len = s.size();
-
-    // Initializing base value to 1, i.e 16^0
-    int base = 1;
-
-    int dec_val = 0;
-
-    // Extracting characters as digits from last character
-    for (unsigned long i=len-1; i>=0; i--)
-    {
-        // if character lies in '0'-'9', converting
-        // it to integral 0-9 by subtracting 48 from
-        // ASCII value.
-        if (s[i]>='0' && s[i]<='9')
-        {
-            dec_val += (s[i] - 48)*base;
-
-            // incrementing base by power
-            base = base * 16;
-        }
-
-            // if character lies in 'A'-'F' , converting
-            // it to integral 10 - 15 by subtracting 55
-            // from ASCII value
-        else if (s[i]>='A' && s[i]<='F')
-        {
-            dec_val += (s[i] - 55)*base;
-
-            // incrementing base by power
-            base = base*16;
-        }
-    }
-
-    return to_string(dec_val);
-}
-
-//string Calculator::decToHex(string s) {
-//}
 
 
 
