@@ -15,20 +15,12 @@ using namespace std;
 /**
  * Constructor
  */
-ClientHandler::ClientHandler(int socket)
+ClientHandler::ClientHandler(int socket, string& filename) : m_authenticator(filename)
 {
     m_socket = socket;
     m_authenticated = false;
+    m_authenticator =  Authenticator(filename);
 
-    //For milestone 1 we use hardcoded values. Later milestone may read and
-    // store credentials in file
-    m_users = {
-            {"Chance", "passw0rd"},
-            {"Jusmin", "12340000"},
-            {"Aacer",  "Pass123!"},
-            {"Troy",   "HelloWorld!"},
-            {"Mike",   "Mike"}
-    };
 }
 /**
  * Destructor
@@ -152,35 +144,13 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     string userNameString = arrayTokens[USERNAMETOKEN];
     string passwordString = arrayTokens[PASSWORDTOKEN];
 
-    //Declare an iterator to search for credentials
-    auto mapIterator = m_users.find(userNameString);
+    // Authenticate based on parsed credentials
+    m_authenticated= m_authenticator.authenticate(userNameString, passwordString);
 
-    //Reset authentication flag to false
-    m_authenticated = false;
-
-    //Search for the username in map
-    //If user is not in map
-    if (mapIterator == m_users.end())
-    {
-        strcpy(szBuffer, GENERAL_FAIL.c_str()); // Not Authenticated
-    }
+    if (m_authenticated)
+        strcpy(szBuffer, SUCCESS.c_str());
     else
-    {
-        sleep(1);
-        //Check user credentials against stored credentials
-        if(m_users[userNameString] == passwordString)
-        {
-            //If password matches, add success status to buffer
-            strcpy(szBuffer, SUCCESS.c_str());
-            m_authenticated = true;
-        }
-        else
-        {
-            //if credentials do not match, add failure status to buffer
-            strcpy(szBuffer, GENERAL_FAIL.c_str()); //Not Authenticated
-            m_authenticated = false;
-        }
-    }
+        strcpy(szBuffer, GENERAL_FAIL.c_str());
 
     // Send Response back on our socket
     sendBuffer(szBuffer);
