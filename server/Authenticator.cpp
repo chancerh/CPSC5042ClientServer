@@ -6,11 +6,13 @@
 using namespace std;
 
 
+
 Authenticator::Authenticator(const string &fileName)
 {
     // populate username and passwords with data from a file
     readFile(fileName);
 }
+Authenticator::~Authenticator() = default;
 
 bool Authenticator::authenticate(const string &username, const string &password) {
     // First check if the user exists

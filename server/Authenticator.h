@@ -8,6 +8,7 @@ using namespace std;
 class Authenticator {
 public:
     Authenticator(const string &fileName);
+    ~Authenticator();
 
     bool authenticate(const string &username, const string &password);
 private:
