@@ -1,0 +1,91 @@
+@startuml
+class Calculator {
+        + calculateExpression(string inExpr): string
+
+        + binToHex(string &s): string
+        + hexToBin(string &s): string
+        + decToBin(string &s): string
+        + binToDec(string &s): string
+        + convertorMenu(string s, int choice): string
+
+        + mean(vector<float>): float
+        + median(vector<float>): float
+        + var(const vector<float> &vec): float
+        + sd(vector<float>): float
+        + summary(const vector<float> &vec): vector<float>
+        + quantiles(vector<float> data, float quantCuts): vector<float>
+        + percentile(vector<float> vec, float nth): vector<float>
+
+        - expTokenize(string &inExpression): vector<string>
+        - convertToRPN(vector<string> &expTokens): vector<string>
+        - validateInputString(string inExpression, set<char> validChars): bool
+
+        - unordered_map<string, int> precedenceMap
+        - INVALID_EXPRESSION const string = "Invalid expression entered."
+        - INVALID_OPERATOR const string = "Invalid operator entered."
+        - INVALID_ARG const string = "Invalid argument entered."
+}
+
+class ClientHandler {
+        + ClientHandler()
+        + ~ClientHandler()
+        + ProcessRPC(): bool
+
+        - m_socket: int
+        - m_authenticated: bool
+        - m_users: unordered_map<string, string>
+        - CONNECT: const string = "connect"
+        - DISCONNECT: const string = "disconnect"
+        - CALC_EXPR: const string = "calculateExpression"
+        - SUCCESS: const string = "0;"
+        - GENERAL_FAIL: const string = "-1;"
+
+        - ProcessConnectRPC(vector<string> &arrayTokens): bool
+        - ProcessDisconnectRPC(): bool
+        - ProcessCalcExp(vector<std::string>& arrayTokens)
+        - ParseTokens(char* buffer, std::vector<std::string>& a)
+        - HexConversionRPC(vector<std::string> &arrayTokens)
+        - ProcessStatSummary(vector<std::string> &arrayTokens): string
+        - sendBuffer(char *szBuffer) const
+
+}
+
+class RPCServer {
+
+        + lock: GLOBAL pthread_mutex_t
+        + num_rpcs: GLOBAL int = 0
+
+        + RPCServer(const char *serverIP, int port);
+        + ~RPCServer()
+        + StartServer(): bool
+        + ListenForClient(): bool
+
+        - m_rpcCount: int
+        - m_server_fd: int
+        - m_socket: int
+        - m_serverIP: char*
+        - m_port: int
+        - sockaddr_in m_address: struct
+        - m_threadContainer: vector<pthread_t>
+
+        - CONNECT: const string = "connect"
+        - DISCONNECT: const string = "disconnect"
+        - CALC_EXPR: const string = "calculateExpression"
+        - SUCCESS const string = "0;"
+        - GENERAL_FAIL const string = "-1;"
+
+}
+
+Class Authenticator {
+    - m_users: unordered_map<string, string>
+    - readFile(const string &filename, char delim = ','): void
+
+
+}
+
+RPCServer *-- ClientHandler
+ClientHandler *-- Calculator
+
+
+
+@enduml
