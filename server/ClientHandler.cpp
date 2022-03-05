@@ -15,11 +15,11 @@ using namespace std;
 /**
  * Constructor
  */
-ClientHandler::ClientHandler(int socket, string& filename) : m_authenticator(filename)
+ClientHandler::ClientHandler(int socket, const string& filename) : m_authenticator(filename)
 {
     m_socket = socket;
     m_authenticated = false;
-    m_authenticator =  Authenticator(filename);
+    m_authenticator = Authenticator(filename);
 
 }
 /**

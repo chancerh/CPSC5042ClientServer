@@ -18,7 +18,7 @@ using namespace std;
 
 class ClientHandler{
 public:
-    ClientHandler(int socket, string &fileName);
+    ClientHandler(int socket, const string &fileName);
     ~ClientHandler();
 
     /**
