@@ -198,7 +198,7 @@ bool ClientHandler::ProcessDisconnectRPC()
     char szBuffer[16];
 
     //Add response to the buffer
-    strcpy(szBuffer, GENERAL_FAIL.c_str());
+    strcpy(szBuffer, SUCCESS.c_str());
 
     // Send Response back on our socket
     sendBuffer(szBuffer);

@@ -16,6 +16,13 @@
 
 using namespace std;
 
+/* GLOBAL VARIABLES
+ *
+ */
+pthread_mutex_t g_lock;
+
+struct GlobalContext g_globalContext;
+
 /**
  * Constructor
  */
@@ -139,7 +146,15 @@ bool RPCServer::ListenForClient()
         printf("Socket: %d: Launching Thread\n", m_socket);
 
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
+        usleep(10000);
+        printf("\n********************************************************\n");
         printf("Created the thread...\n");
+        printf("Max: %d\n", g_globalContext.g_maxConnection);
+        printf("Active: %d\n", g_globalContext.g_activeConnection);
+        printf("Total Connection: %d\n", g_globalContext.g_totalConnection);
+        printf("Total RPC: %d\n", g_globalContext.g_rpcCount);
+        printf("\n********************************************************\n");
+
     }
 
     return true;
