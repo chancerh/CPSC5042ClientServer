@@ -3,7 +3,9 @@
 //Version : 2.0
 //Filename: RPCServer.h
 
-#pragma once
+#ifndef CPSC5042CLIENTSERVER_RPCSERVER_H
+#define CPSC5042CLIENTSERVER_RPCSERVER_H
+
 #include <unistd.h>
 #include <cstdio>
 #include <sys/socket.h>
@@ -20,12 +22,7 @@
 
 using namespace std;
 
-/* GLOBAL VARIABLES
- *
- */
-pthread_mutex_t g_lock;
 
-struct GlobalContext g_globalContext;
 
 
 class RPCServer
@@ -85,3 +82,4 @@ private:
             GENERAL_FAIL = "-1;";
 };
 
+#endif //CPSC5042CLIENTSERVER_RPCSERVER_H

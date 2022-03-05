@@ -71,7 +71,7 @@ int main(int argc, char const* argv[])
       return -1;
    }
 
-   const int NUM_THREADS = 20;
+   const int NUM_THREADS = 50;
    pthread_t testThreads[NUM_THREADS];
    struct hostAddr myHostAddr;
    myHostAddr.ipAddr = argv[1];
@@ -212,7 +212,7 @@ void* threadExecution(void* inHostAddr)
       read(sock, buffer, 1024);
 
       //check if buffer equal to disconnect
-      if ((string)buffer == "disconnect")
+      if ((string)buffer == "0")
       {
          cout << "Socket: " << sock << ", Disconnected successfully" << endl;
       }
