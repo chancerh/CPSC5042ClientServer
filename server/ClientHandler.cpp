@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include "Calculator.h"
-#include <iostream>
+
 using namespace std;
 
 /**
@@ -20,7 +20,8 @@ ClientHandler::ClientHandler(int socket)
     m_socket = socket;
     m_authenticated = false;
 
-    //For milestone 1 we use hardcoded values. Later milestone may read and store credentials in file
+    //For milestone 1 we use hardcoded values. Later milestone may read and
+    // store credentials in file
     m_users = {
             {"Chance", "passw0rd"},
             {"Jusmin", "12340000"},
@@ -32,12 +33,13 @@ ClientHandler::ClientHandler(int socket)
 /**
  * Destructor
  */
-ClientHandler::~ClientHandler() {};
+ClientHandler::~ClientHandler() = default;
 
 /**
  * ProcessRPC will examine buffer and will essentially control
  */
-bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
+bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
+                               GlobalContext *g_globalContext)
 {
     char buffer[1024] = { 0 };
     std::vector<std::string> arrayTokens;
@@ -47,6 +49,13 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
     const int RPCTOKEN = 0;
     bool bContinue = true;
 
+    pthread_mutex_lock(g_lock);
+    g_globalContext->g_activeConnection += 1;
+    if (g_globalContext->g_activeConnection > g_globalContext->g_maxConnection)
+       g_globalContext->g_maxConnection = g_globalContext->g_activeConnection;
+    g_globalContext->g_totalConnection += 1;
+    pthread_mutex_unlock(g_lock);
+
     //Loop while server is connected to client
     while ((bContinue))
     {
@@ -54,13 +63,11 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
         printf("Waiting for client to send buffer\n");
 
         valread = read(this->m_socket, buffer, sizeof(buffer));
+        printf("Received buffer on Socket %d: %s\n", m_socket, buffer);
 
-	      pthread_mutex_lock(lock);
-	      *rpcCounter += 1;
-	      cout << "Total number of RPCs is now" << *rpcCounter << endl;
-	      pthread_mutex_unlock(lock);
-
-        printf("Received buffer from client: %s\n", buffer);
+        pthread_mutex_lock(g_lock);
+        g_globalContext->g_rpcCount += 1;
+        pthread_mutex_unlock(g_lock);
 
         if (valread <= 0)
         {
@@ -68,16 +75,17 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
             bContinue = false;
             break;
         }
-        printf("\nRPC: %s\n", buffer);
 
         // reset token
         arrayTokens.clear();
         this->ParseTokens(buffer, arrayTokens);
 
-        // string statements are not supported with a switch, so using if/else logic to dispatch
+        // string statements are not supported with a switch, so using if/else
+        // logic to dispatch
         string aString = arrayTokens[RPCTOKEN];
 
-        //If we received a Connect RPC and the server is not yet connected, process the ConnectRPC
+        //If we received a Connect RPC and the server is not yet connected,
+        // process the ConnectRPC
         if ((bConnected == false) && (aString == CONNECT))
         {
             bStatusOk = ProcessConnectRPC(arrayTokens);  // connect RPC
@@ -91,36 +99,35 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
             }
         }
 
-            //If we received a Disconnect RPC and the server is connected, process disconnect RPC
-        else if ((bConnected == true) && (aString == DISCONNECT)) // disconnect RPC
+        //Process disconnect RPC if server connected
+        else if ((bConnected == true) && (aString == DISCONNECT))
         {
             bStatusOk = ProcessDisconnectRPC();
-            printf("Terminating connection.\n");
             bConnected = false;
-            bContinue = false; // we are going to leave this loop, as we are done
+            bContinue = false; // Leaving this loop, as we are done
         }
 
-        ////I combine all the checking in here. I think we can create a separate function to store these string too.
-        else if(aString == CALC_EXPR || aString == CALC_BINTOHEX || aString == CALC_BINTODEC
-                ||aString == CALC_HEXTOBIN || aString == CALC_DECTOBIN)
+        else if(bConnected && m_authenticated && (aString == CALC_EXPR ||
+                                                  aString == CALC_CONV ||
+                                                  aString == CALC_STAT))
         {
-        ////call only one function (Jusmin)
             ProcessCal(arrayTokens);
         }
 
-        else if (aString == "summary")
-        {
-            ProcessStatSummary(arrayTokens);
-        }
-
-            //If RPC is not supported, print status on screen
+        //If RPC is not supported, print status on screen
         else
         {
-            // Not in our list, perhaps, print out what was sent
-            printf("RPCs not supported...\n");
+           // Not in our list, perhaps, print out what was sent
+           sendBuffer((char*)(GENERAL_FAIL.c_str()));
+           printf("RPC received on Socket %d is not supported...\n", m_socket);
         }
-
     }
+
+
+    //Updating global count of connections
+    pthread_mutex_lock(g_lock);
+    g_globalContext->g_activeConnection -= 1;
+    pthread_mutex_unlock(g_lock);
 
     return true;
 }
@@ -130,7 +137,8 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *lock, int *rpcCounter)
 //**************************
 
 /**
- * ProcessConnectRPC will send connect flag to server with user authentication process
+ * ProcessConnectRPC will send connect flag to server with user authentication
+ * process
  */
 bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
 {
@@ -145,7 +153,7 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     string passwordString = arrayTokens[PASSWORDTOKEN];
 
     //Declare an iterator to search for credentials
-    unordered_map<string, string>::const_iterator mapIterator = m_users.find(userNameString);
+    auto mapIterator = m_users.find(userNameString);
 
     //Reset authentication flag to false
     m_authenticated = false;
@@ -154,7 +162,7 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     //If user is not in map
     if (mapIterator == m_users.end())
     {
-        strcpy(szBuffer, "-1;"); // Not Authenticated
+        strcpy(szBuffer, GENERAL_FAIL.c_str()); // Not Authenticated
     }
     else
     {
@@ -163,20 +171,20 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
         if(m_users[userNameString] == passwordString)
         {
             //If password matches, add success status to buffer
-            strcpy(szBuffer, "0;");
+            strcpy(szBuffer, SUCCESS.c_str());
             m_authenticated = true;
         }
         else
         {
             //if credentials do not match, add failure status to buffer
-            strcpy(szBuffer, "-1;"); // Not Authenticated
+            strcpy(szBuffer, GENERAL_FAIL.c_str()); //Not Authenticated
             m_authenticated = false;
         }
     }
-    printf("sending buffer!\n");
+
     // Send Response back on our socket
     sendBuffer(szBuffer);
-    printf("buffer sent!\n");
+
     //return the result of the authentication
     return m_authenticated;
 }
@@ -190,175 +198,60 @@ bool ClientHandler::ProcessDisconnectRPC()
     char szBuffer[16];
 
     //Add response to the buffer
-    strcpy(szBuffer, "disconnect");
+    strcpy(szBuffer, GENERAL_FAIL.c_str());
 
     // Send Response back on our socket
-    int nlen = strlen(szBuffer);
-    szBuffer[nlen] = 0;
-    send(this->m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+    sendBuffer(szBuffer);
 
     return true;
 }
 
-void ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
+bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
     //Declaring a string to store the result
     string result;
     char szBuffer[80];
 
     Calculator myCalc;
-    ////combine all our function -> check which one to call
-    ////I have not use your convertor, but this use do the same thing
     //Calculate expression
     try
     {
-        if(arrayTokens[0]==CALC_EXPR){
-            result = myCalc.calculateExpression(arrayTokens[1]);
-            result = result + ";" + SUCCESS;
-        }
-        else if(arrayTokens[0]==CALC_BINTODEC){
-            result = myCalc.binToDec(arrayTokens[1]);
-            result = result + ";" + SUCCESS;
-        }
-        else if(arrayTokens[0]==CALC_DECTOBIN){
-            result = myCalc.decToBin(arrayTokens[1]);
-            result = result + ";" + SUCCESS;
-        }
-        else if(arrayTokens[0]==CALC_HEXTOBIN){
-            result = myCalc.decToBin(arrayTokens[1]);
-            result = result + ";" + SUCCESS;
-        }
-        else if(arrayTokens[0]==CALC_BINTOHEX){
-            result = myCalc.decToBin(arrayTokens[1]);
-            result = result + ";" + SUCCESS;
-        }
-    }
-        //if invalid argument, return failure status
-    catch (invalid_argument& e)
-    {
-        result = "0;" + GENERAL_FAIL;
-    }
+       if (arrayTokens[0] == CALC_EXPR)
+       {
+           result = myCalc.calculateExpression(arrayTokens[1]);
+           result = result + ";" + SUCCESS;
+       }
 
-    //Copy result to buffer and send buffer to client
-    strcpy(szBuffer, result.c_str());
-    sendBuffer(szBuffer);
-    printf("send out result: %s\n",szBuffer);
+       else if(arrayTokens[0] == CALC_CONV)
+       {
+           result = myCalc.convertor(arrayTokens[1], arrayTokens[2]);
+           result = result + ";" + SUCCESS;
+       }
 
-}
-
-void ClientHandler::ProcessCalcExp(vector<std::string> &arrayTokens)
-{
-    //Declaring a string to store the result
-    string result;
-    char szBuffer[80];
-
-    Calculator myCalc;
-
-    //Calculate expression
-    try
-    {
-        result = myCalc.calculateExpression(arrayTokens[1]);
-        result = result + ";" + SUCCESS;
-    }
-        //if invalid argument, return failure status
-    catch (invalid_argument& e)
-    {
-        result = "0;" + GENERAL_FAIL;
-    }
-
-    //Copy result to buffer and send buffer to client
-    strcpy(szBuffer, result.c_str());
-    sendBuffer(szBuffer);
-
-}
-
-void ClientHandler::HexConversionRPC(vector<std::string> &arrayTokens)
-{
-    //Declaring a string to store the result
-    string result;
-    char szBuffer[80];
-
-    Calculator myCalc;
-
-    //Calculate expression
-//    try
-//    {
-        // Hex to Dec
-        if(arrayTokens[1] == "0")
+       else if (arrayTokens[0] == CALC_STAT)
+       {
+           result = myCalc.summary(arrayTokens[1]);
+           result = result + ";" + SUCCESS;
+       }
+       else
         {
-            result = myCalc.convertorMenu( "3", arrayTokens[2]);
+            result = "0;" + GENERAL_FAIL;
         }
-        // Dec to Hex
-        else if (arrayTokens[1] == "1"){
-            result = myCalc.convertorMenu( "4", arrayTokens[2]);
-            result = myCalc.convertorMenu( "1", result );
-        }
-        else{
-            throw invalid_argument("Invalid!");
-        }
-        result = result + ";" + SUCCESS;
-//    }
-//    //if invalid argument, return failure status
-//    catch (invalid_argument& e)
-//    {
-//        result = "0;" + GENERAL_FAIL;
-//    }
+    }
+        catch (invalid_argument& e)
+    {
+        result = "0;" + GENERAL_FAIL;
+    }
 
     //Copy result to buffer and send buffer to client
     strcpy(szBuffer, result.c_str());
     sendBuffer(szBuffer);
 
-}
-
-string ClientHandler::ProcessStatSummary(vector<std::string> &arrayTokens)
-{
-    vector<float> vec;
-    Calculator myCalc;
-
-    // For now, assume someone typed in mean followed by numbers separated by 
-    // spaces make a whitespace regex
-    auto const re = regex{R"(\s+)"};
-    auto const vecString =
-            vector<string>(sregex_token_iterator{begin(arrayTokens[1]),
-						 end(arrayTokens[1]), re, -1},
-		sregex_token_iterator{});
-
-    // put results into single string
-    string resultString;
-
-    for (string str : vecString)
-    {
-	try {
-	    vec.push_back(stof(str));
-	}
-	catch(const invalid_argument& is) {
-	    resultString = str + " is not valid input\n;0";
-	    char* charRes = &resultString[0];
-	    send(this->m_socket, charRes, strlen(charRes) + 1, 0);
-	    return resultString;
-	}
-    }
-    // Get summary statistics
-    vector<float> statSum = myCalc.summary(vec);
-
-
-    resultString =
-            "Min      " + to_string(statSum[0]) + "\n" +
-            "1st Qu.  " + to_string(statSum[1]) + "\n" +
-            "Median   " + to_string(statSum[2]) + "\n" +
-            "Mean     " + to_string(statSum[3]) + "\n" +
-            "3rd Qu.  " + to_string(statSum[4]) + "\n" +
-            "Max      " + to_string(statSum[5]) + "\n;0";
-
-    char* charRes = &resultString[0];
-    send(this->m_socket, charRes, strlen(charRes) + 1, 0);
-
-    return resultString;
-
+    return true;
 }
 
 /**
- * Going to populate a String vector with tokens extracted from the string the client sent.
- * The delimiter will be a ";"
+ * Going to populate a String vector with tokens extracted from the string the
+ * client sent. The delimiter will be a ";"
  * An example buffer could be "connect;mike;mike;"
  */
 void ClientHandler::ParseTokens(char * buffer, std::vector<std::string> & a)
@@ -382,6 +275,7 @@ void ClientHandler::sendBuffer(char *szBuffer) const
     int nlen = strlen(szBuffer);
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+    printf("Sent buffer on Socket %d: %s\n", m_socket, szBuffer);
 }
 
 
