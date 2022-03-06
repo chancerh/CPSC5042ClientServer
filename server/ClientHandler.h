@@ -87,6 +87,8 @@ private:
     //Helper function to send buffers back to client
     void sendBuffer(char *szBuffer, pthread_mutex_t *g_screenLock) const;
 
+    void printServerStats(const GlobalContext *g_globalContext,
+                          const string &phase) const;
 };
 
 
