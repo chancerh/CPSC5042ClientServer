@@ -3,14 +3,14 @@
 //Version : 1.0
 //Filename: ClientCS.cpp
 
-#include <stdio.h>
+#include <cstdio>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
 #include <iterator>
 #include <iostream>
-#include <string.h>
+#include <cstring>
 #include <termio.h>
 
 using namespace std;
@@ -84,11 +84,6 @@ const string CONNECT = "connect",
         CALC_EXPR = "calculateExpression",
         CALC_STAT = "calculateStats",
         CALC_CONV = "conversion";
-
-string connectRPC = CONNECT + ";";
-string calcExpRPC = CALC_EXPR + ";";
-string calcConversion = CALC_CONV + ";";
-string calcStats = CALC_STAT + ";";
 const char* logoffRPC = "disconnect;";
 char buffer[1024] = { 0 };
 char connected;
@@ -122,6 +117,8 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
+    string connectRPC;
+
     // start plugging in interface
     //testing if client connect to server
     if (bConnect == true)
@@ -131,7 +128,7 @@ int main(int argc, char const* argv[])
         {
             //reset buffers
             memset(buffer, 0 , 1024);
-            connectRPC = "connect;";
+            connectRPC = CONNECT + ";";
 
             //Get credentials from user
             connectRPC = connectRPC + getCredentials() + ";";
@@ -219,19 +216,22 @@ void userInterface(){
               CalcStats = 2,
               CalcConversion = 3,
               quitProgram = 4;
+    do
+    {
 
-    cout << "\n*******************************************" << endl;
-    cout << "*********           Menu            *******" << endl;
-    cout << "*******************************************" << endl;
+        cout << endl;
+        cout << "*************************************************" << endl;
+        cout << "***********            Menu            **********" << endl;
+        cout << "*************************************************" << endl;
+        cout <<  "1. Calculator" << endl;
+        cout <<  "2. Statistics" << endl;
+        cout <<  "3. Conversion (Binary/Decimal/Hexadecimal)" << endl;
+        cout <<  "4. Quit" << endl << endl;
+        cout << "Enter selection: ";
+        getline(cin, userInput);
 
-    do{
-    cout <<  "1. Calculator : " << endl;
-    cout <<  "2. Statistic : " << endl;
-    cout <<  "3. Conversion (Binary/Decimal/Hexadecimal) : " << endl;
-    cout <<  "4. Quit" << endl;
-    getline(cin, userInput);
-
-        switch(stoi(userInput)){
+        switch(stoi(userInput))
+        {
             case CalcExpression:
                 processCalcExpression();
                 break;
@@ -249,6 +249,7 @@ void userInterface(){
 
 void processCalcExpression(){
     string expr;
+    string calcExpRPC = CALC_EXPR + ";";
     vector<string> result;
 
     cout << "Enter expression: ";
@@ -279,6 +280,7 @@ void processCalcExpression(){
 
 void processCalcStats(){
     string expr;
+    string calcStats = CALC_STAT + ";";
     vector<string> result;
     bzero(buffer, 1024);
 
@@ -297,10 +299,24 @@ void processCalcStats(){
     //Read from server
     read(sock, buffer, 1024);
     ParseTokens(buffer, result);
-
-    if(result[1] == "0")
+    string printString;
+    if(result[result.size() - 1] == "0")
     {
-        printf("%s\n", result[0].c_str());
+
+        printString = "Min        " + result[0] + "\n" +
+                      "1st Qu.    " + result[1] + "\n" +
+                      "Median     " + result[2] + "\n" +
+                      "Mean       " + result[3] + "\n" +
+                      "3rd Qu.    " + result[4] + "\n" +
+                      "Max        " + result[5] + "\n";
+
+        if (result.size() > 8)
+        {
+            printString = printString + "Std. Dev   " + result[6] + "\n" +
+                                        "Variance   " + result[7] + "\n";
+
+        }
+        printf("%s\n", printString.c_str());
     }
     else
     {
@@ -308,13 +324,16 @@ void processCalcStats(){
     }
 }
 
-void processConversion(){
+void processConversion() {
     string expr;
     string choice;
     vector<string> result;
+    string calcConversion;
 
     do{
-        cout << "\n*******    Conversion Menu     *******" << endl;
+        calcConversion = CALC_CONV + ";";
+        cout << endl;
+        cout << "************     Conversion Menu     ************" << endl;
         cout<<"1. Convert Binary to Decimal"<<endl;
         cout<<"2. Convert Decimal to Binary"<<endl;
         cout<<"3. Convert Binary to Hexadecimal"<<endl;
@@ -323,7 +342,7 @@ void processConversion(){
         cout<<"6. Convert Hexadecimal to Decimal "<<endl;
         cout<<"7. Return to main menu"<<endl;
 
-        cout << "\nEnter Choice: ";
+        cout << "\nEnter Selection: ";
         getline(cin, choice);
 
         switch(stoi(choice)){
@@ -354,7 +373,7 @@ void processConversion(){
             default:
                 return;
         }
-        calcConversion = CALC_CONV + ";" + choice + ";" + expr + ";";
+        calcConversion = calcConversion + choice + ";" + expr + ";";
         strcpy(buffer, &calcConversion[0]);
         //Add a null terminator
         int nlen = strlen(buffer);

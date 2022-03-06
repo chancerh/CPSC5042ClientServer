@@ -61,6 +61,10 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 3:
+            if (inValue.substr(0, 2) == "0x")
+            {
+                inValue = inValue.substr(2);
+            }
             if(validateInputString(inValue, HEX_CHAR)){
                 result = hexToBin(inValue);
                 break;
@@ -79,6 +83,10 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 5:
+            if (inValue.substr(0, 2) == "0x")
+            {
+                inValue = inValue.substr(2);
+            }
             if(validateInputString(inValue, HEX_CHAR)){
                 result = hexToDec(inValue);
                 break;
@@ -260,19 +268,19 @@ string Calculator::summary(const string &inValue)
         summaryOut.push_back(stdDev);
         summaryOut.push_back(variance);
     }
-    resultString =
-            "Min      " + to_string(summaryOut[0]) + "\n" +
-            "1st Qu.  " + to_string(summaryOut[1]) + "\n" +
-            "Median   " + to_string(summaryOut[2]) + "\n" +
-            "Mean     " + to_string(summaryOut[3]) + "\n" +
-            "3rd Qu.  " + to_string(summaryOut[4]) + "\n" +
-            "Max      " + to_string(summaryOut[5]) + "\n";
+
+
+        resultString = to_string(summaryOut[0]) + ";" +
+                        to_string(summaryOut[1]) + ";" +
+                        to_string(summaryOut[2]) + ";" +
+                        to_string(summaryOut[3]) + ";" +
+                        to_string(summaryOut[4]) + ";" +
+                        to_string(summaryOut[5]);
 
     if (vec.size() > 1)
     {
-        resultString = resultString +
-                       "Std. Dev " + to_string(summaryOut[6]) + "\n" +
-                       "Variance " + to_string(summaryOut[7]) + "\n";
+        resultString = resultString + + ";" + to_string(summaryOut[6]) + ";" +
+                                                to_string(summaryOut[7]);
     }
     return resultString;
 }
@@ -428,9 +436,8 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
    return operandStack[0];
 }
 
-string Calculator::binToHex(string &input) {
-    //input = string(4 - input.size() % 4, '0') + input;
-
+string Calculator::binToHex(string &input)
+{
     //pad input
     while (input.size() % 4 != 0)
     {
@@ -487,10 +494,6 @@ string Calculator::hexToBin(string& input)
 {
     //String to store results
     string result;
-
-    //Validate input
-    if(!validateInputString(input, HEX_CHAR))
-        throw invalid_argument(INVALID_ARG);
 
     //Convert each char to its binary representation
     for(unsigned long i = 0; i < input.size(); i++)
@@ -554,10 +557,8 @@ string Calculator::hexToBin(string& input)
 }
 string Calculator::decToBin(string& input)
 {
-    if(!validateInputString(input, DEC_CHAR))
-        throw invalid_argument(INVALID_ARG);
 
-    //convert string to int
+    //convert strinint
     int num = stoi(input);
     vector<unsigned int> tempResult;
     stringstream temp;
@@ -581,55 +582,27 @@ string Calculator::decToBin(string& input)
     return temp.str();
 }
 
-string Calculator::binToDec(string &input)
-{
-    //convert string to int
-    //int num = stoull(input);
-
-    if(!validateInputString(input, BIN_CHAR))
-        throw invalid_argument(INVALID_ARG);
-
+string Calculator::binToDec(string &input) {
     unsigned long result = 0;
 
     // Initializing base value to 1, i.e 2^0
     int base = 1;
 
 
-    for (int i = input.size() - 1; i >= 0; i--)
-    {
+    for (int i = input.size() - 1; i >= 0; i--) {
         int tmp = stoi(to_string(input[i])) - '0';
 
         //int tmp = input[i] - '0';
         result = result + tmp * base;
         base = base * 2;
     }
-
-//    while (num) {
-//        int last_digit = num % 10;
-//        num = num / 10;
-//
-//        result += last_digit * base;
-//
-//        base = base * 2;
-//    }
-
-    return to_string(result);
 }
-
 
 string Calculator::hexToDec(string &input)
 {
-    if(!validateInputString(input, HEX_CHAR))
-    {
-        throw invalid_argument(INVALID_ARG);
-    }
-
-    string result; //storage for result
-
-    //Convert from Hex to Dec using previous functions
+    string result;
     result = hexToBin(input);
     result = binToDec(result);
-
 
     return result;
 }
@@ -637,10 +610,6 @@ string Calculator::hexToDec(string &input)
 string Calculator::decToHex(string &input)
 {
     string result;
-    if(!validateInputString(input, DEC_CHAR))
-    {
-        throw invalid_argument(INVALID_ARG);
-    }
     result = decToBin(input);
     result = binToHex(result);
 
@@ -658,7 +627,7 @@ bool Calculator::validateInputString(const string &inExpression,
     for (char c : inExpression)
     {
         //if character not in valid set, return false
-        if (validChars.find(c) == validChars.end())
+        if (validChars.find(toupper(c)) == validChars.end())
             return false;
     }
 

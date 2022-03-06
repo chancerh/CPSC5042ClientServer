@@ -103,15 +103,14 @@ bool RPCServer::StartServer()
  */
 
 
-void* startThread(void* input)
-{
+void* startThread(void* input) {
     //sleep(1);
 
     //Get socket number from input
-    auto socket = *(int*)input;
+    auto socket = *(int *) input;
 
     //Create a new thread handler object
-    ClientHandler* cHandler = new ClientHandler(socket, g_credentials);
+    ClientHandler *cHandler = new ClientHandler(socket, g_credentials);
 
     //Print global context stats
 //    pthread_mutex_lock(&g_screenLock);
@@ -125,7 +124,7 @@ void* startThread(void* input)
 //    pthread_mutex_unlock(&g_screenLock);
 
 
-    //Process incoming RPCs
+    //Process incoming RPC
     cHandler->ProcessRPC(&g_contextLock, &g_globalContext);
 
     //Print out global context stats

@@ -15,7 +15,8 @@ using namespace std;
 /**
  * Constructor
  */
-ClientHandler::ClientHandler(int socket, const string& filename) : m_authenticator(filename)
+ClientHandler::ClientHandler(int socket, const string& filename) :
+        m_authenticator(filename)
 {
     m_socket = socket;
     m_authenticated = false;
@@ -54,6 +55,7 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
         // should be blocked when a new RPC has not called us yet
         printf("Waiting for client to send buffer\n");
 
+        bzero(buffer, sizeof(buffer));
         valread = read(this->m_socket, buffer, sizeof(buffer));
         printf("Received buffer on Socket %d: %s\n", m_socket, buffer);
 
@@ -111,10 +113,10 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
         {
            // Not in our list, perhaps, print out what was sent
            sendBuffer((char*)(GENERAL_FAIL.c_str()));
-           printf("RPC received on Socket %d is not supported...\n", m_socket);
+           printf("RPC received on Socket %d is not supported...\n",
+                  m_socket);
         }
     }
-
 
     //Updating global count of connections
     pthread_mutex_lock(g_lock);
@@ -134,6 +136,10 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
  */
 bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
 {
+    if (arrayTokens.size() < 3)
+    {
+        throw new invalid_argument(INVALID_ARG);
+    }
 
     //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
@@ -145,15 +151,13 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     string passwordString = arrayTokens[PASSWORDTOKEN];
 
     // Authenticate based on parsed credentials
-    m_authenticated= m_authenticator.authenticate(userNameString, passwordString);
+    m_authenticated =
+            m_authenticator.authenticate(userNameString, passwordString);
 
     if (m_authenticated)
         strcpy(szBuffer, SUCCESS.c_str());
     else
-        //DEBUG ONLY
-        //strcpy(szBuffer, GENERAL_FAIL.c_str());
-        m_authenticated = true;
-        strcpy(szBuffer, SUCCESS.c_str());
+        strcpy(szBuffer, GENERAL_FAIL.c_str());
 
     // Send Response back on our socket
     sendBuffer(szBuffer);
@@ -182,25 +186,26 @@ bool ClientHandler::ProcessDisconnectRPC()
 bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
     //Declaring a string to store the result
     string result;
-    char szBuffer[80];
+    char szBuffer[1024] = {0};
 
     Calculator myCalc;
+
     //Calculate expression
     try
     {
-       if (arrayTokens[0] == CALC_EXPR)
+       if (arrayTokens[0] == CALC_EXPR && arrayTokens.size() == 2)
        {
            result = myCalc.calculateExpression(arrayTokens[1]);
            result = result + ";" + SUCCESS;
        }
 
-       else if(arrayTokens[0] == CALC_CONV)
+       else if(arrayTokens[0] == CALC_CONV && arrayTokens.size() == 3)
        {
            result = myCalc.convertor(arrayTokens[1], arrayTokens[2]);
            result = result + ";" + SUCCESS;
        }
 
-       else if (arrayTokens[0] == CALC_STAT)
+       else if (arrayTokens[0] == CALC_STAT && arrayTokens.size() == 2)
        {
            result = myCalc.summary(arrayTokens[1]);
            result = result + ";" + SUCCESS;
