@@ -588,7 +588,6 @@ string Calculator::binToDec(string &input) {
     // Initializing base value to 1, i.e 2^0
     int base = 1;
 
-
     for (int i = input.size() - 1; i >= 0; i--) {
         int tmp = stoi(to_string(input[i])) - '0';
 

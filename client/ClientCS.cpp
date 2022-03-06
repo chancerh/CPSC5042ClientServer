@@ -72,7 +72,7 @@ void processCalcExpression();
 
 /**
  * Function to process five number summary for statistic analysis, and if the
- * input contains more than 3 numbers, extra analysis (standard deviation
+ * input contains more than 2 numbers, extra analysis (standard deviation
  * and variance) will be displayed
  *
  */
@@ -207,8 +207,9 @@ int main(int argc, char const* argv[])
 
 bool validateInteger(string input)
 {
-    for(int i = 0; i < input.length(); i++){
-        if(input[i] > '9' || input[i] < '0')
+    for(int i = 0; i < input.size(); i++){
+        int tmp = stoi(to_string(input[i]));
+        if(tmp > 9 || i < 0)
         {
             return false;
         }
