@@ -57,6 +57,14 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock);
 void userInterface();
 
 /**
+ * Helper function to validate user's input for menu, refrain from entering
+ * invalid/empty input
+ * @param input An integer for inputting menu options
+ * @return true if the input is valid
+ */
+bool validateInteger(string input);
+
+/**
  * Function to process basic calculator
  *
  */
@@ -197,6 +205,17 @@ int main(int argc, char const* argv[])
     return 0;
 }
 
+bool validateInteger(string input)
+{
+    for(int i = 0; i < input.length(); i++){
+        if(input[i] > '9' || input[i] < '0')
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void userInterface()
 {
     //Initiate user input and menu option variables
@@ -218,8 +237,12 @@ void userInterface()
         cout <<  "2. Statistics" << endl;
         cout <<  "3. Conversion (Binary/Decimal/Hexadecimal)" << endl;
         cout <<  "4. Quit" << endl << endl;
-        cout << "Enter selection: ";
-        getline(cin, userInput);
+
+        //Validate the user selection input, refrain from empty/invalid input
+        do{
+            cout << "Enter selection: ";
+            getline(cin, userInput);
+        }while(validateInteger(userInput));
 
         //Takes user's choice and perform desired calculation
         switch(stoi(userInput))
@@ -263,7 +286,7 @@ void processCalcExpression()
 
     if(result[1] == "0")
     {
-        printf("%s\n", result[0].c_str());
+        printf("Result : %s\n", result[0].c_str());
     }
     else
     {
@@ -337,8 +360,12 @@ void processConversion() {
         cout<<"6. Convert Hexadecimal to Decimal "<<endl;
         cout<<"7. Return to main menu"<<endl;
 
-        cout << "\nEnter Selection: ";
-        getline(cin, choice);
+        //Validate the user selection input, refrain from empty/invalid input
+        do{
+            cout << "\nEnter Selection: ";
+            getline(cin, choice);
+        }while(validateInteger(choice));
+
         //Direct user's choice and call conversion methods
         switch(stoi(choice)){
             case 1:

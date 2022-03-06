@@ -71,7 +71,7 @@ int main(int argc, char const* argv[])
       return -1;
    }
 
-   const int NUM_THREADS = 250;
+   const int NUM_THREADS = 50;
    pthread_t testThreads[NUM_THREADS];
    struct hostAddr myHostAddr;
    myHostAddr.ipAddr = argv[1];
