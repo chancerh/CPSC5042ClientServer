@@ -103,41 +103,39 @@ bool RPCServer::StartServer()
  */
 
 
-void* startThread(void* input)
-{
+void* startThread(void* input) {
     //sleep(1);
 
     //Get socket number from input
-    auto socket = *(int*)input;
+    auto socket = *(int *) input;
 
     //Create a new thread handler object
-    ClientHandler* cHandler = new ClientHandler(socket, g_credentials);
-
-    //Print global context stats
-//    pthread_mutex_lock(&g_screenLock);
-//    printf("********************************************************\n");
-//    printf("Created Thread %lu on Socket %d.\n", pthread_self(), socket);
-//    printf("Max # of connections: %d\n", g_globalContext.g_maxConnection);
-//    printf("Active connections: %d\n", g_globalContext.g_activeConnection);
-//    printf("Total # of Connection: %d\n", g_globalContext.g_totalConnection);
-//    printf("Total # of RPCs: %d\n", g_globalContext.g_rpcCount);
-//    printf("\n********************************************************\n");
-//    pthread_mutex_unlock(&g_screenLock);
+    ClientHandler *cHandler = new ClientHandler(socket, g_credentials);
 
 
-    //Process incoming RPCs
-    cHandler->ProcessRPC(&g_contextLock, &g_globalContext);
+    //Process incoming RPC
+    try
+    {
+        cHandler->ProcessRPC(&g_contextLock, &g_screenLock, &g_globalContext);
+    }
+    catch(exception &e)
+    {
+        pthread_mutex_lock(&g_screenLock);
+        printf("Exception on Socket %d", socket);
+        pthread_mutex_unlock(&g_screenLock);
+    }
+
 
     //Print out global context stats
-//    pthread_mutex_lock(&g_screenLock);
-//    printf("\n********************************************************\n");
-//    printf("Ending Thread %lu on Socket %d.\n", pthread_self(), socket);
-//    printf("Max # of connections: %d\n", g_globalContext.g_maxConnection);
-//    printf("Active connections: %d\n", g_globalContext.g_activeConnection);
-//    printf("Total # of Connection: %d\n", g_globalContext.g_totalConnection);
-//    printf("Total # of RPCs: %d\n", g_globalContext.g_rpcCount);
-//    printf("\n********************************************************\n");
-
+    pthread_mutex_lock(&g_screenLock);
+    printf("\n\n");
+    printf("********************************************************\n");
+    printf("Ending Thread %lu on Socket %d.\n", pthread_self(), socket);
+    printf("Max # of connections: %d\n", g_globalContext.g_maxConnection);
+    printf("Active connections: %d\n", g_globalContext.g_activeConnection);
+    printf("Total # of Connection: %d\n", g_globalContext.g_totalConnection);
+    printf("Total # of RPCs: %d\n", g_globalContext.g_rpcCount);
+    printf("********************************************************\n\n");
     pthread_mutex_unlock(&g_screenLock);
 
     //Memory cleanup

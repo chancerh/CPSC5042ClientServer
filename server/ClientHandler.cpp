@@ -15,7 +15,8 @@ using namespace std;
 /**
  * Constructor
  */
-ClientHandler::ClientHandler(int socket, const string& filename) : m_authenticator(filename)
+ClientHandler::ClientHandler(int socket, const string& filename) :
+        m_authenticator(filename)
 {
     m_socket = socket;
     m_authenticated = false;
@@ -30,7 +31,8 @@ ClientHandler::~ClientHandler() = default;
 /**
  * ProcessRPC will examine buffer and will essentially control
  */
-bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
+bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
+                               pthread_mutex_t *g_screenLock,
                                GlobalContext *g_globalContext)
 {
     char buffer[1024] = { 0 };
@@ -41,25 +43,50 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
     const int RPCTOKEN = 0;
     bool bContinue = true;
 
-    pthread_mutex_lock(g_lock);
+    //Update global context variables (num of connections, ...)
+    //get mutex
+    pthread_mutex_lock(g_contextLock);
+
+    //update number of active connections
     g_globalContext->g_activeConnection += 1;
+
+    //update max concurrent connections
     if (g_globalContext->g_activeConnection > g_globalContext->g_maxConnection)
        g_globalContext->g_maxConnection = g_globalContext->g_activeConnection;
+
+    //update number of overall connections
     g_globalContext->g_totalConnection += 1;
-    pthread_mutex_unlock(g_lock);
+
+    //release mutex
+    pthread_mutex_unlock(g_contextLock);
+
+    //Print global context stats
+    pthread_mutex_lock(g_screenLock);
+    printf("\n\n");
+    printf("********************************************************\n");
+    printf("Created Thread %lu on Socket %d.\n", pthread_self(), m_socket);
+    printf("Max # of connections: %d\n", g_globalContext->g_maxConnection);
+    printf("Active connections: %d\n", g_globalContext->g_activeConnection);
+    printf("Total # of Connection: %d\n", g_globalContext->g_totalConnection);
+    printf("Total # of RPCs: %d\n", g_globalContext->g_rpcCount);
+    printf("********************************************************\n\n");
+    pthread_mutex_unlock(g_screenLock);
 
     //Loop while server is connected to client
     while ((bContinue))
     {
         // should be blocked when a new RPC has not called us yet
-        printf("Waiting for client to send buffer\n");
+        //printf("Waiting for client to send buffer\n");
 
+        bzero(buffer, sizeof(buffer));
         valread = read(this->m_socket, buffer, sizeof(buffer));
+        pthread_mutex_lock(g_screenLock);
         printf("Received buffer on Socket %d: %s\n", m_socket, buffer);
+        pthread_mutex_unlock(g_screenLock);
 
-        pthread_mutex_lock(g_lock);
+        pthread_mutex_lock(g_contextLock);
         g_globalContext->g_rpcCount += 1;
-        pthread_mutex_unlock(g_lock);
+        pthread_mutex_unlock(g_contextLock);
 
         if (valread <= 0)
         {
@@ -80,21 +107,18 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
         // process the ConnectRPC
         if ((bConnected == false) && (aString == CONNECT))
         {
-            bStatusOk = ProcessConnectRPC(arrayTokens);  // connect RPC
+            bStatusOk = ProcessConnectRPC(arrayTokens, g_screenLock);
             if (bStatusOk == true)
             {
-                printf("User Login Successful!\n ");
+                //printf("User Login Successful!\n ");
                 bConnected = true;
-            }
-            else{
-                printf("User Login Unsuccessful!\n");
             }
         }
 
         //Process disconnect RPC if server connected
         else if ((bConnected == true) && (aString == DISCONNECT))
         {
-            bStatusOk = ProcessDisconnectRPC();
+            bStatusOk = ProcessDisconnectRPC(g_screenLock);
             bConnected = false;
             bContinue = false; // Leaving this loop, as we are done
         }
@@ -103,23 +127,25 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
                                                   aString == CALC_CONV ||
                                                   aString == CALC_STAT))
         {
-            ProcessCal(arrayTokens);
+            ProcessCal(arrayTokens, g_screenLock);
         }
 
         //If RPC is not supported, print status on screen
         else
         {
            // Not in our list, perhaps, print out what was sent
-           sendBuffer((char*)(GENERAL_FAIL.c_str()));
-           printf("RPC received on Socket %d is not supported...\n", m_socket);
+           sendBuffer((char*)(GENERAL_FAIL.c_str()), g_screenLock);
+           pthread_mutex_lock(g_screenLock);
+           printf("RPC received on Socket %d is not supported...\n",
+                  m_socket);
+            pthread_mutex_unlock(g_screenLock);
         }
     }
 
-
     //Updating global count of connections
-    pthread_mutex_lock(g_lock);
+    pthread_mutex_lock(g_contextLock);
     g_globalContext->g_activeConnection -= 1;
-    pthread_mutex_unlock(g_lock);
+    pthread_mutex_unlock(g_contextLock);
 
     return true;
 }
@@ -132,8 +158,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_lock,
  * ProcessConnectRPC will send connect flag to server with user authentication
  * process
  */
-bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
+bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens, pthread_mutex_t *g_screenLock)
 {
+    if (arrayTokens.size() < 3)
+    {
+        throw new invalid_argument(INVALID_ARG);
+    }
 
     //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
@@ -145,18 +175,16 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
     string passwordString = arrayTokens[PASSWORDTOKEN];
 
     // Authenticate based on parsed credentials
-    m_authenticated= m_authenticator.authenticate(userNameString, passwordString);
+    m_authenticated =
+            m_authenticator.authenticate(userNameString, passwordString);
 
     if (m_authenticated)
         strcpy(szBuffer, SUCCESS.c_str());
     else
-        //DEBUG ONLY
-        //strcpy(szBuffer, GENERAL_FAIL.c_str());
-        m_authenticated = true;
-        strcpy(szBuffer, SUCCESS.c_str());
+        strcpy(szBuffer, GENERAL_FAIL.c_str());
 
     // Send Response back on our socket
-    sendBuffer(szBuffer);
+    sendBuffer(szBuffer, g_screenLock);
 
     //return the result of the authentication
     return m_authenticated;
@@ -165,7 +193,7 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens)
 /**
  * ProcessDisconnectRPC will send the disconnect flag to server
  */
-bool ClientHandler::ProcessDisconnectRPC()
+bool ClientHandler::ProcessDisconnectRPC(pthread_mutex_t *g_screenLock)
 {
     //Declare a buffer for the response
     char szBuffer[16];
@@ -174,33 +202,35 @@ bool ClientHandler::ProcessDisconnectRPC()
     strcpy(szBuffer, SUCCESS.c_str());
 
     // Send Response back on our socket
-    sendBuffer(szBuffer);
+    sendBuffer(szBuffer, g_screenLock);
 
     return true;
 }
 
-bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
+bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t *g_screenLock)
+{
     //Declaring a string to store the result
     string result;
-    char szBuffer[80];
+    char szBuffer[1024] = {0};
 
     Calculator myCalc;
+
     //Calculate expression
     try
     {
-       if (arrayTokens[0] == CALC_EXPR)
+       if (arrayTokens[0] == CALC_EXPR && arrayTokens.size() == 2)
        {
            result = myCalc.calculateExpression(arrayTokens[1]);
            result = result + ";" + SUCCESS;
        }
 
-       else if(arrayTokens[0] == CALC_CONV)
+       else if(arrayTokens[0] == CALC_CONV && arrayTokens.size() == 3)
        {
            result = myCalc.convertor(arrayTokens[1], arrayTokens[2]);
            result = result + ";" + SUCCESS;
        }
 
-       else if (arrayTokens[0] == CALC_STAT)
+       else if (arrayTokens[0] == CALC_STAT && arrayTokens.size() == 2)
        {
            result = myCalc.summary(arrayTokens[1]);
            result = result + ";" + SUCCESS;
@@ -221,7 +251,7 @@ bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens) {
 
     //Copy result to buffer and send buffer to client
     strcpy(szBuffer, result.c_str());
-    sendBuffer(szBuffer);
+    sendBuffer(szBuffer, g_screenLock);
 
     return true;
 }
@@ -246,13 +276,16 @@ void ClientHandler::ParseTokens(char * buffer, std::vector<std::string> & a)
     return;
 }
 
-void ClientHandler::sendBuffer(char *szBuffer) const
+void ClientHandler::sendBuffer(char *szBuffer, pthread_mutex_t *g_screenLock)
+const
 {
     //Add null termination and send buffer to client
     int nlen = strlen(szBuffer);
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
+    pthread_mutex_lock(g_screenLock);
     printf("Sent buffer on Socket %d: %s\n", m_socket, szBuffer);
+    pthread_mutex_unlock(g_screenLock);
 }
 
 

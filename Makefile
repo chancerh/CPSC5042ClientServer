@@ -13,7 +13,7 @@ startClient : client/ClientCS.cpp
 
 # Link the compiled main and RPCServe code to create the server executable
 # Start with class names
-SERVER_CLASSES = RPCServer Calculator RPCServer ClientHandler Authenticator
+SERVER_CLASSES = RPCServer Calculator ClientHandler Authenticator
 
 # Create server/*.h
 SERVER_H = $(addsuffix .h, $(addprefix server/, $(SERVER_CLASSES)))
