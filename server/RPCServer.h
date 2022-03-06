@@ -22,9 +22,6 @@
 
 using namespace std;
 
-
-
-
 class RPCServer
 {
 public:
@@ -66,20 +63,7 @@ private:
     int m_port; //server port connection
     struct sockaddr_in m_address;
 
-
-
-
-    vector<pthread_t> m_threadContainer;
-
-
-    //SUPPORTED RPCs
-    const string CONNECT = "connect",
-            DISCONNECT = "disconnect",
-            CALC_EXPR = "calculateExpression";
-
-    //RPC Status
-    const string SUCCESS = "0;",
-            GENERAL_FAIL = "-1;";
+    const string MUTEX_INIT_FAIL = "Failed to initialize mutex.";
 };
 
 #endif //CPSC5042CLIENTSERVER_RPCSERVER_H

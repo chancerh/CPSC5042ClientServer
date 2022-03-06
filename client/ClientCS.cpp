@@ -60,6 +60,10 @@ void userInterface();
 void processCalcExpression();
 
 /**
+ *
+ */
+void processCalcStats();
+/**
  * Function to process conversion among binary, decimal, hexadecimal expression
  *
  */
@@ -72,9 +76,19 @@ void processConversion();
 //initialize data
 int sock = 0;
 struct sockaddr_in serv_addr;
-string connectRPC = "connect;";
-string calcExpRPC = "calculateExpression;";
-//string calcExpRPC = "";
+
+//SUPPORTED RPCs
+//Conversion parted added and fixed by Jusmin 3/2/22
+const string CONNECT = "connect",
+        DISCONNECT = "disconnect",
+        CALC_EXPR = "calculateExpression",
+        CALC_STAT = "calculateStats",
+        CALC_CONV = "conversion";
+
+string connectRPC = CONNECT + ";";
+string calcExpRPC = CALC_EXPR + ";";
+string calcConversion = CALC_CONV + ";";
+string calcStats = CALC_STAT + ";";
 const char* logoffRPC = "disconnect;";
 char buffer[1024] = { 0 };
 char connected;
@@ -107,9 +121,6 @@ int main(int argc, char const* argv[])
         cout << "Fail to connect to server, exiting program.." << endl;
         return -1;
     }
-
-    // implement user interface
-    userInterface();
 
     // start plugging in interface
     //testing if client connect to server
@@ -159,6 +170,8 @@ int main(int argc, char const* argv[])
 //    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
 //    sleep(SLEEP_TIME)
 
+    // implement user interface
+    userInterface();
 
     // Do a Disconnect Message
     if (bConnect == true)
@@ -201,30 +214,29 @@ int main(int argc, char const* argv[])
 }
 
 void userInterface(){
-    int userInput;
+    string userInput;
     const int CalcExpression = 1,
-              CalcAvg = 2,
+              CalcStats = 2,
               CalcConversion = 3,
               quitProgram = 4;
 
-    cout << "*******************************************" << endl;
-    cout << "*****************   Menu   ****************" << endl;
+    cout << "\n*******************************************" << endl;
+    cout << "*********           Menu            *******" << endl;
     cout << "*******************************************" << endl;
 
     do{
     cout <<  "1. Calculator : " << endl;
     cout <<  "2. Statistic : " << endl;
-    cout <<  "3. Conversion (Binary/Decimal/Hexdecimal) : " << endl;
+    cout <<  "3. Conversion (Binary/Decimal/Hexadecimal) : " << endl;
     cout <<  "4. Quit" << endl;
-    cin >> userInput;
+    getline(cin, userInput);
 
-        switch(userInput){
+        switch(stoi(userInput)){
             case CalcExpression:
                 processCalcExpression();
                 break;
-            case CalcAvg:
-                // placeholder
-                cout << " " << endl;
+            case CalcStats:
+                processCalcStats();
                 break;
             case CalcConversion:
                 processConversion();
@@ -232,20 +244,14 @@ void userInterface(){
             default:
                 break;
         }
-    }while(userInput != quitProgram);
+    }while(stoi(userInput) != quitProgram && stoi(userInput) > 0);
 }
 
 void processCalcExpression(){
     string expr;
     vector<string> result;
 
-    // calcExpRPC = "calculateExpression;";
-
-    calcExpRPC = "calculateExpression;";
-
     cout << "Enter expression: ";
-
-    getline(cin, expr);
     getline(cin, expr);
     calcExpRPC = calcExpRPC + expr + ";";
     strcpy(buffer, &calcExpRPC[0]);
@@ -271,64 +277,85 @@ void processCalcExpression(){
     }
 }
 
+void processCalcStats(){
+    string expr;
+    vector<string> result;
+    bzero(buffer, 1024);
+
+    cout << "Enter at least two numbers separated by space: ";
+    getline(cin, expr);
+    calcStats = calcStats + expr + ";";
+    strcpy(buffer, &calcStats[0]);
+
+    //Add a null terminator
+    int nlen = strlen(buffer);
+    buffer[nlen] = 0;
+
+    //Send the created RPC buffer to server
+    send(sock, buffer, strlen(buffer) + 1, 0);
+
+    //Read from server
+    read(sock, buffer, 1024);
+    ParseTokens(buffer, result);
+
+    if(result[1] == "0")
+    {
+        printf("%s\n", result[0].c_str());
+    }
+    else
+    {
+        printf("%s\n", "Invalid expression.");
+    }
+}
+
 void processConversion(){
     string expr;
-    int choice;
-
+    string choice;
     vector<string> result;
-
-    ////I did not pass the choice to RPC because I want to make RPC look
-    /// the same for every function we call
-    ////ex. binToDec;11001100;
-    ////    decToBin;10;
-    ////    hexToBin;3E;
-    ////    binToHex;11001100;
-    //// so I combine all the function in ClientHandler.cpp to one.
-    ///  You can go take a look there
 
     do{
         cout << "\n*******    Conversion Menu     *******" << endl;
-        cout<<"1. Convert Decimal to Binary"<<endl;
-        cout<<"2. Convert Binary to Decimal"<<endl;
-        cout<<"3. Convert Hexadecimal to Binary"<<endl;
-        cout<<"4. Convert Binary to Hexadecimal"<<endl;
-        cout<<"5. Return to main menu"<<endl;
+        cout<<"1. Convert Binary to Decimal"<<endl;
+        cout<<"2. Convert Decimal to Binary"<<endl;
+        cout<<"3. Convert Binary to Hexadecimal"<<endl;
+        cout<<"4. Convert Hexadecimal to Binary "<<endl;
+        cout<<"5. Convert Decimal to Hexadecimal "<<endl;
+        cout<<"6. Convert Hexadecimal to Decimal "<<endl;
+        cout<<"7. Return to main menu"<<endl;
 
         cout << "\nEnter Choice: ";
-        cin>>choice;
+        getline(cin, choice);
 
-        switch(choice){
-
+        switch(stoi(choice)){
             case 1:
-                calcExpRPC = "decToBin";
                 cout << "Enter number to be converted: ";
-                getline(cin, expr);
                 getline(cin, expr);
                 break;
             case 2:
-                calcExpRPC = "binToDec";
                 cout << "Enter number to be converted: ";
-                getline(cin, expr);
                 getline(cin, expr);
                 break;
             case 3:
-                calcExpRPC = "hexToBin";
                 cout << "Enter number to be converted: ";
-                getline(cin, expr);
                 getline(cin, expr);
                 break;
             case 4:
-                calcExpRPC = "binToHex";
                 cout << "Enter number to be converted: ";
                 getline(cin, expr);
+                break;
+            case 5:
+                cout << "Enter number to be converted: ";
+                getline(cin, expr);
+                break;
+            case 6:
+                cout << "Enter number to be converted: ";
                 getline(cin, expr);
                 break;
             default:
-                cout << "Return to the main menu: ";
-                break;
+                return;
         }
-        calcExpRPC = calcExpRPC + ";" + expr + ";";
-        strcpy(buffer, &calcExpRPC[0]);
+        calcConversion = CALC_CONV + ";" + choice + ";" + expr + ";";
+        strcpy(buffer, &calcConversion[0]);
         //Add a null terminator
         int nlen = strlen(buffer);
         buffer[nlen] = 0;
@@ -348,10 +375,11 @@ void processConversion(){
         {
             printf("%s\n", "Invalid expression.");
         }
+        //reset result, so it won't carry the old one
         result.clear();
         sleep(1);
     }
-    while(choice != 5);
+    while(stoi(choice) <= 6 && stoi(choice) > 0);
 }
 
 string getCredentials()
@@ -363,7 +391,7 @@ string getCredentials()
     string username, password;
     //take in username and password
     cout << "\nPlease enter your username: ";
-    cin >> username;
+    getline(cin, username);
     cout << "Please enter your password: ";
 
     //modify console settings to mask password
@@ -373,7 +401,7 @@ string getCredentials()
     tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
 
     //Store user input
-    cin >> password;
+    getline(cin, password);
 
     //restore the terminal settings to start echoing again
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
