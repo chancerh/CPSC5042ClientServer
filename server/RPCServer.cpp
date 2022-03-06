@@ -19,7 +19,8 @@ using namespace std;
 /* GLOBAL VARIABLES
  *
  */
-pthread_mutex_t g_lock;
+pthread_mutex_t g_contextLock; //Mutex for gloabal context
+pthread_mutex_t g_screenLock;
 
 struct GlobalContext g_globalContext;
 
@@ -33,11 +34,15 @@ RPCServer::RPCServer(const char *serverIP, int port)
     //Initialize member elements
     m_serverIP = (char *) serverIP;
     m_port = port;
-    int mutex_init_code = pthread_mutex_init(&g_lock, NULL);
+    int mutex_init_code = pthread_mutex_init(&g_contextLock, NULL);
     if (mutex_init_code != 0)
     {
-       cout << "Mutex initialization failed" << endl;
-      throw new runtime_error("Couldn't initialize global mutex.");
+        throw new runtime_error(MUTEX_INIT_FAIL);
+    }
+    mutex_init_code = pthread_mutex_init(&g_screenLock, NULL);
+    if (mutex_init_code != 0)
+    {
+        throw new runtime_error(MUTEX_INIT_FAIL);
     }
 };
 
@@ -46,7 +51,7 @@ RPCServer::RPCServer(const char *serverIP, int port)
  */
 RPCServer::~RPCServer()
 {
-   pthread_mutex_destroy(&g_lock);
+   pthread_mutex_destroy(&g_contextLock);
 };
 
 /**
@@ -107,14 +112,33 @@ void* startThread(void* input)
 
     //Create a new thread handler object
     ClientHandler* cHandler = new ClientHandler(socket, g_credentials);
-    //printf ("New thread %lu created with socket: %d\n", pthread_self(), socket);
-    cout << "New thread" << pthread_self() << " created with socket: " << socket << endl;
 
-    
-    
+    //Print global context stats
+//    pthread_mutex_lock(&g_screenLock);
+//    printf("********************************************************\n");
+//    printf("Created Thread %lu on Socket %d.\n", pthread_self(), socket);
+//    printf("Max # of connections: %d\n", g_globalContext.g_maxConnection);
+//    printf("Active connections: %d\n", g_globalContext.g_activeConnection);
+//    printf("Total # of Connection: %d\n", g_globalContext.g_totalConnection);
+//    printf("Total # of RPCs: %d\n", g_globalContext.g_rpcCount);
+//    printf("\n********************************************************\n");
+//    pthread_mutex_unlock(&g_screenLock);
+
+
     //Process incoming RPCs
-    cHandler->ProcessRPC(&g_lock, &g_globalContext);
-    printf("Ending thread %lu with socket %d\n", pthread_self(), socket);
+    cHandler->ProcessRPC(&g_contextLock, &g_globalContext);
+
+    //Print out global context stats
+//    pthread_mutex_lock(&g_screenLock);
+//    printf("\n********************************************************\n");
+//    printf("Ending Thread %lu on Socket %d.\n", pthread_self(), socket);
+//    printf("Max # of connections: %d\n", g_globalContext.g_maxConnection);
+//    printf("Active connections: %d\n", g_globalContext.g_activeConnection);
+//    printf("Total # of Connection: %d\n", g_globalContext.g_totalConnection);
+//    printf("Total # of RPCs: %d\n", g_globalContext.g_rpcCount);
+//    printf("\n********************************************************\n");
+
+    pthread_mutex_unlock(&g_screenLock);
 
     //Memory cleanup
     delete cHandler;
@@ -141,21 +165,13 @@ bool RPCServer::ListenForClient()
     //
     else
     {
-        printf("Socket: %d: Accepted Connection\n", m_socket);
-
-        //create thread object
+//        printf("Socket: %d: Accepted Connection\n", m_socket);
+//
+//        //create thread object
         pthread_t thread_id;
-        printf("Socket: %d: Launching Thread\n", m_socket);
+//        printf("Socket: %d: Launching Thread\n", m_socket);
 
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
-        usleep(10000);
-        printf("\n********************************************************\n");
-        printf("Created the thread...\n");
-        printf("Max: %d\n", g_globalContext.g_maxConnection);
-        printf("Active: %d\n", g_globalContext.g_activeConnection);
-        printf("Total Connection: %d\n", g_globalContext.g_totalConnection);
-        printf("Total RPC: %d\n", g_globalContext.g_rpcCount);
-        printf("\n********************************************************\n");
 
     }
 

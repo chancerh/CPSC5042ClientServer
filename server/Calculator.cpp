@@ -31,7 +31,7 @@ string Calculator::convertor(const string& choice, string inValue)
         throw invalid_argument(INVALID_ARG);
 
     string result;
-    int c = stoi(choice);
+    int c = stoi(choice) - 1;
     switch(c){
         case 0:
             if(validateInputString(inValue, BIN_CHAR)){
@@ -122,7 +122,6 @@ float Calculator::median(vector<float> vec)
     return quantiles(vec, .5)[0];
 }
 
-
 float Calculator::percentile(vector<float> vec, float nth) {
 
     // Check that vector is not empty
@@ -145,7 +144,6 @@ float Calculator::percentile(vector<float> vec, float nth) {
     float h = index - indexLow;
     return (1-h) * qs + h * vec[indexHigh];
 }
-
 
 vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
 {
@@ -431,11 +429,17 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
 }
 
 string Calculator::binToHex(string &input) {
-    input = string(4 - input.size() % 4, '0') + input;
+    //input = string(4 - input.size() % 4, '0') + input;
+
+    //pad input
+    while (input.size() % 4 != 0)
+    {
+        input = "0" + input;
+    }
     string result, bits;
     vector<string> container;
 
-    for(unsigned long i = 0; i < container.size()-3; i+=4) {
+    for(unsigned long i = 0; i < input.size()-3; i+=4) {
         bits = input.substr(i, 4);
         if(bits == "0000")
             result += '0';
@@ -476,7 +480,7 @@ string Calculator::binToHex(string &input) {
     // Removes leading zeroes, output '0' if all zeroes
 
     result = regex_replace(result, regex("^0+(?!$)"), "");
-    return ("0x" + result);
+    return "0x" + result;
 }
 
 string Calculator::hexToBin(string& input)
@@ -489,10 +493,9 @@ string Calculator::hexToBin(string& input)
         throw invalid_argument(INVALID_ARG);
 
     //Convert each char to its binary representation
-    vector<unsigned long> hexContainer;
     for(unsigned long i = 0; i < input.size(); i++)
     {
-        switch(toupper(hexContainer[i]))
+        switch(toupper(input[i]))
         {
             case '0':
                 result += "0000";
@@ -551,6 +554,9 @@ string Calculator::hexToBin(string& input)
 }
 string Calculator::decToBin(string& input)
 {
+    if(!validateInputString(input, DEC_CHAR))
+        throw invalid_argument(INVALID_ARG);
+
     //convert string to int
     int num = stoi(input);
     vector<unsigned int> tempResult;
@@ -578,20 +584,34 @@ string Calculator::decToBin(string& input)
 string Calculator::binToDec(string &input)
 {
     //convert string to int
-    int num = stoi(input);
-    int result = 0;
+    //int num = stoull(input);
+
+    if(!validateInputString(input, BIN_CHAR))
+        throw invalid_argument(INVALID_ARG);
+
+    unsigned long result = 0;
 
     // Initializing base value to 1, i.e 2^0
     int base = 1;
 
-    while (num) {
-        int last_digit = num % 10;
-        num = num / 10;
 
-        result += last_digit * base;
+    for (int i = input.size() - 1; i >= 0; i--)
+    {
+        int tmp = stoi(to_string(input[i])) - '0';
 
+        //int tmp = input[i] - '0';
+        result = result + tmp * base;
         base = base * 2;
     }
+
+//    while (num) {
+//        int last_digit = num % 10;
+//        num = num / 10;
+//
+//        result += last_digit * base;
+//
+//        base = base * 2;
+//    }
 
     return to_string(result);
 }
@@ -622,9 +642,9 @@ string Calculator::decToHex(string &input)
         throw invalid_argument(INVALID_ARG);
     }
     result = decToBin(input);
-    result = binToHex(input);
+    result = binToHex(result);
 
-    return ("0x" + result);
+    return (result);
 }
 
 bool Calculator::validateInputString(const string &inExpression,
