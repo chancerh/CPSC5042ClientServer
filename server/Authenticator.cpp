@@ -18,9 +18,9 @@ bool Authenticator::authenticate(const string &username, const string &password)
     // First check if the user exists
     unordered_map<string, string>::const_iterator mapIterator =
             m_users.find(username);
-    cout << username << "\n" << endl;
-    cout << password << "\n" << endl;
-    cout << m_users[username] << endl;
+//    cout << username << "\n" << endl;
+//    cout << password << "\n" << endl;
+//    cout << m_users[username] << endl;
     // If the user doesn't exist, return false
     if (mapIterator == m_users.end())
         return false;

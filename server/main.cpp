@@ -71,7 +71,7 @@ int main(int argc, char const* argv[])
     //While loop listening to client and processing the incoming RPC calls
     while (statusOk)
     {
-        printf("\nWaiting...\n");
+        //printf("\nWaiting...\n");
         statusOk = serverObj->ListenForClient();
 
     }

@@ -27,7 +27,9 @@ public:
     *
     * @return Always TRUE
     */
-    bool ProcessRPC(pthread_mutex_t *g_lock, GlobalContext *g_globalContext);
+    bool ProcessRPC(pthread_mutex_t *g_contextLock,
+                    pthread_mutex_t *g_screenLock,
+                    GlobalContext *g_globalContext);
 
 private:
     int m_socket; //socket number
@@ -60,19 +62,19 @@ private:
      *                      arrayTokens[2] contains the password
      * @return A boolean indicating if the input credentials are correct
      */
-    bool ProcessConnectRPC(vector<std::string>& arrayTokens);
+    bool ProcessConnectRPC(vector<std::string>& arrayTokens, pthread_mutex_t *g_screenLock);
 
     /**
      * Processes the different RPC of the calculator functions
      * @param arrayTokens A vector containing the tokens of incoming RPC.
      */
-    bool ProcessCal(vector<std::string> &arrayTokens);
+    bool ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t *g_screenLock);
 
     /**
      * The processDisconnectRPC() disconnects the client connection from the server
      * @return Always returns true
      */
-    bool ProcessDisconnectRPC();
+    bool ProcessDisconnectRPC(pthread_mutex_t *g_screenLock);
 
     /**
      * The ParseTokens() function processes an input char array buffer containing the RPC parameters, and parses it
@@ -83,7 +85,7 @@ private:
     void ParseTokens(char* buffer, std::vector<std::string>& a);
 
     //Helper function to send buffers back to client
-    void sendBuffer(char *szBuffer) const;
+    void sendBuffer(char *szBuffer, pthread_mutex_t *g_screenLock) const;
 
 };
 

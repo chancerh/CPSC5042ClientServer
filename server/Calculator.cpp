@@ -596,6 +596,8 @@ string Calculator::binToDec(string &input) {
         result = result + tmp * base;
         base = base * 2;
     }
+
+    return to_string(result);
 }
 
 string Calculator::hexToDec(string &input)
@@ -613,7 +615,7 @@ string Calculator::decToHex(string &input)
     result = decToBin(input);
     result = binToHex(result);
 
-    return (result);
+    return result;
 }
 
 bool Calculator::validateInputString(const string &inExpression,

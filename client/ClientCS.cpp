@@ -121,87 +121,68 @@ int main(int argc, char const* argv[])
 
     // start plugging in interface
     //testing if client connect to server
-    if (bConnect == true)
+    //keep asking for user input, successfully connected.
+    do
     {
-        //keep asking for user input, successfully connected.
-        do
+        //reset buffers
+        memset(buffer, 0 , 1024);
+        connectRPC = CONNECT + ";";
+
+        //Get credentials from user
+        connectRPC = connectRPC + getCredentials() + ";";
+
+        //Copy the created the RPC string to the buffer
+        strcpy(buffer, &connectRPC[0]);
+
+        //Add a null terminator
+        int nlen = strlen(buffer);
+        buffer[nlen] = 0;
+
+        //Send the created RPC buffer to server
+        send(sock, buffer, strlen(buffer) + 1, 0);
+
+        //Read from server
+        read(sock, buffer, 1024);
+        connected = buffer[0];
+
+        //check if successfully connected
+        if (connected == '0')
         {
-            //reset buffers
-            memset(buffer, 0 , 1024);
-            connectRPC = CONNECT + ";";
-
-            //Get credentials from user
-            connectRPC = connectRPC + getCredentials() + ";";
-
-            //Copy the created the RPC string to the buffer
-            strcpy(buffer, &connectRPC[0]);
-
-            //Add a null terminator
-            int nlen = strlen(buffer);
-            buffer[nlen] = 0;
-
-            //Send the created RPC buffer to server
-            send(sock, buffer, strlen(buffer) + 1, 0);
-
-            //Read from server
-            read(sock, buffer, 1024);
-            connected = buffer[0];
-
-            //check if successfully connected
-            if (connected == '0')
-            {
-                cout << "\nLogin successful!" << endl;
-            }
-            else
-            {
-                cout << "\nInvalid login!" << endl;
-            }
-        } while (connected != '0');
-    }
-    else
-    {
-        printf("Exit without calling RPC");
-    }
-
-    //Sleep for 10 seconds
-//    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
-//    sleep(SLEEP_TIME)
+            cout << "\nLogin successful!" << endl;
+        }
+        else
+        {
+            cout << "\nInvalid login!" << endl;
+        }
+    } while (connected != '0');
 
     // implement user interface
     userInterface();
 
-    // Do a Disconnect Message
-    if (bConnect == true)
+    // Do a Disconnect Mes
+    cout << "Disconnecting from Server" << endl;
+
+    //reset buffers
+    memset(buffer, 0 , 1024);
+
+    //create the buffer to be sent via RPC
+    strcpy(buffer, logoffRPC);
+    int nlen = strlen(buffer);
+    buffer[nlen] = 0;   // Put the null terminator
+
+    //send buffer
+    send(sock, buffer, strlen(buffer) + 1, 0);
+
+    //get RPC response from server
+    read(sock, buffer, 1024);
+
+    //check if buffer equal to disconnect
+    if ((string)buffer == "disconnect")
     {
-        cout << "Disconnecting from Server" << endl;
-
-        //reset buffers
-        memset(buffer, 0 , 1024);
-
-        //create the buffer to be sent via RPC
-        strcpy(buffer, logoffRPC);
-        int nlen = strlen(buffer);
-        buffer[nlen] = 0;   // Put the null terminator
-
-        //send buffer
-        send(sock, buffer, strlen(buffer) + 1, 0);
-
-        //get RPC response from server
-        read(sock, buffer, 1024);
-
-        //check if buffer equal to disconnect
-        if ((string)buffer == "disconnect")
-        {
-            cout << "Disconnected successfully" << endl;
-        }
-        else
-        {
-            cout << "Failed to disconnect successfully" << endl;
-        }
+        cout << "Disconnected successfully" << endl;
     }
-    else
-    {
-        printf("Exit without calling RPC");
+    else {
+        cout << "Failed to disconnect successfully" << endl;
     }
 
     // Terminate connection
@@ -229,6 +210,7 @@ void userInterface(){
         cout <<  "4. Quit" << endl << endl;
         cout << "Enter selection: ";
         getline(cin, userInput);
+
 
         switch(stoi(userInput))
         {
