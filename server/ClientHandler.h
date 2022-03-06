@@ -33,7 +33,7 @@ public:
     /**
     * Processes incoming RPCs by parsing the input arguments and calling the
     * appropriate functions and create a threads
-    * @param g_contextLock A mutex that lock the threading function per parse
+    * @param g_contextLock A mutex that lock global variable
     * @param g_screenLock A mutex that lock the printing statement in server side
     * @param g_globalContext A struck that track all the rpcCount, activeConnection,
     *                        maxConnection, and totalConnection
