@@ -46,6 +46,7 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
     //Update global context variables (num of connections, ...)
     //get mutex
     pthread_mutex_lock(g_contextLock);
+    pthread_mutex_lock(g_screenLock);
 
     //update number of active connections
     g_globalContext->g_activeConnection += 1;
@@ -57,20 +58,10 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
     //update number of overall connections
     g_globalContext->g_totalConnection += 1;
 
-    //release mutex
-    pthread_mutex_unlock(g_contextLock);
+    printServerStats(g_globalContext, "Created");
 
-    //Print global context stats
-    pthread_mutex_lock(g_screenLock);
-    printf("\n\n");
-    printf("********************************************************\n");
-    printf("Created Thread %lu on Socket %d.\n", pthread_self(), m_socket);
-    printf("Max # of connections: %d\n", g_globalContext->g_maxConnection);
-    printf("Active connections: %d\n", g_globalContext->g_activeConnection);
-    printf("Total # of Connection: %d\n", g_globalContext->g_totalConnection);
-    printf("Total # of RPCs: %d\n", g_globalContext->g_rpcCount);
-    printf("********************************************************\n\n");
     pthread_mutex_unlock(g_screenLock);
+    pthread_mutex_unlock(g_contextLock);
 
     //Loop while server is connected to client
     while ((bContinue))
@@ -108,13 +99,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
         if ((bConnected == false) && (aString == CONNECT))
         {
             bStatusOk = ProcessConnectRPC(arrayTokens, g_screenLock);
+
             if (bStatusOk == true)
             {
-                //printf("User Login Successful!\n ");
                 bConnected = true;
             }
         }
-
         //Process disconnect RPC if server connected
         else if ((bConnected == true) && (aString == DISCONNECT))
         {
@@ -144,11 +134,16 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
 
     //Updating global count of connections
     pthread_mutex_lock(g_contextLock);
+    pthread_mutex_lock(g_screenLock);
     g_globalContext->g_activeConnection -= 1;
+    printServerStats(g_globalContext, "Destroyed");
+    pthread_mutex_unlock(g_screenLock);
     pthread_mutex_unlock(g_contextLock);
 
     return true;
 }
+
+
 
 //*************************
 //      Private method
@@ -160,15 +155,20 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
  */
 bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens, pthread_mutex_t *g_screenLock)
 {
-    if (arrayTokens.size() < 3)
-    {
-        throw new invalid_argument(INVALID_ARG);
-    }
+
 
     //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
     const int PASSWORDTOKEN = 2;
     char szBuffer[80];
+
+    //if user entered empty strings for credentials, send failure
+    if (arrayTokens.size() < 3)
+    {
+        strcpy(szBuffer, GENERAL_FAIL.c_str());
+        sendBuffer(szBuffer, g_screenLock);
+        return false;
+    }
 
     // Strip out tokens 1 and 2 (username, password)
     string userNameString = arrayTokens[USERNAMETOKEN];
@@ -286,6 +286,20 @@ const
     pthread_mutex_lock(g_screenLock);
     printf("Sent buffer on Socket %d: %s\n", m_socket, szBuffer);
     pthread_mutex_unlock(g_screenLock);
+}
+
+void ClientHandler::printServerStats(const GlobalContext *g_globalContext,
+                                     const string &phase) const
+{
+    auto input = phase.c_str();
+    printf("\n\n");
+    printf("********************************************************\n");
+    printf("%s Thread %lu on Socket %d.\n", input, pthread_self(), m_socket);
+    printf("Max # of connections: %d\n", g_globalContext->g_maxConnection);
+    printf("Active connections: %d\n", g_globalContext->g_activeConnection);
+    printf("Total # of connections: %d\n", g_globalContext->g_totalConnection);
+    printf("Total # of RPCs: %d\n", g_globalContext->g_rpcCount);
+    printf("********************************************************\n\n");
 }
 
 

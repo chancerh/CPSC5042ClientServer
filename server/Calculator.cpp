@@ -222,7 +222,7 @@ string Calculator::summary(const string &inValue)
 
     //Check that all the input characters are valid
     if (!validateInputString(inValue, FLOAT_CHAR))
-        throw new invalid_argument(INVALID_ARG);
+        throw invalid_argument(INVALID_ARG);
 
     auto const vecString =
             vector<string>(sregex_token_iterator{begin(inValue),
@@ -239,7 +239,7 @@ string Calculator::summary(const string &inValue)
         }
         catch(const invalid_argument& is)
         {
-            throw new invalid_argument(INVALID_ARG);
+            throw invalid_argument(INVALID_ARG);
         }
     }
     // Check that vector is not empty
