@@ -99,13 +99,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
         if ((bConnected == false) && (aString == CONNECT))
         {
             bStatusOk = ProcessConnectRPC(arrayTokens, g_screenLock);
+
             if (bStatusOk == true)
             {
-                //printf("User Login Successful!\n ");
                 bConnected = true;
             }
         }
-
         //Process disconnect RPC if server connected
         else if ((bConnected == true) && (aString == DISCONNECT))
         {
@@ -156,15 +155,20 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
  */
 bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens, pthread_mutex_t *g_screenLock)
 {
-    if (arrayTokens.size() < 3)
-    {
-        throw invalid_argument(INVALID_ARG);
-    }
+
 
     //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
     const int PASSWORDTOKEN = 2;
     char szBuffer[80];
+
+    //if user entered empty strings for credentials, send failure
+    if (arrayTokens.size() < 3)
+    {
+        strcpy(szBuffer, GENERAL_FAIL.c_str());
+        sendBuffer(szBuffer, g_screenLock);
+        return false;
+    }
 
     // Strip out tokens 1 and 2 (username, password)
     string userNameString = arrayTokens[USERNAMETOKEN];
