@@ -87,6 +87,7 @@ const string CONNECT = "connect",
 const char* logoffRPC = "disconnect;";
 char buffer[1024] = { 0 };
 char connected;
+char disconnected;
 const int SLEEP_TIME = 10;
 bool bConnect = false;
 
@@ -175,9 +176,10 @@ int main(int argc, char const* argv[])
 
     //get RPC response from server
     read(sock, buffer, 1024);
+    disconnected = buffer[0];
 
     //check if buffer equal to disconnect
-    if ((string)buffer == "disconnect")
+    if (disconnected == '0')
     {
         cout << "Disconnected successfully" << endl;
     }
