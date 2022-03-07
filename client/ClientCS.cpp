@@ -208,10 +208,18 @@ int main(int argc, char const* argv[])
 bool validateInteger(string input)
 {
     for(int i = 0; i < input.size(); i++){
-        int tmp = stoi(to_string(input[i]));
-        if(tmp > 9 || i < 0)
-        {
+        //check if string input contain int
+        if(!isdigit(input[i])){
             return false;
+        }
+        else{
+            //convert string to int
+            int tmp = stoi(input);
+            //check if out of range
+            if(tmp > 9 || tmp < 0)
+            {
+                return false;
+            }
         }
     }
     return true;
@@ -243,7 +251,7 @@ void userInterface()
         do{
             cout << "Enter selection: ";
             getline(cin, userInput);
-        }while(validateInteger(userInput));
+        }while(!validateInteger(userInput));
 
         //Takes user's choice and perform desired calculation
         switch(stoi(userInput))
