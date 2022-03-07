@@ -22,6 +22,8 @@ struct hostAddr {
     string port;
 };
 
+const int BUFFER_SIZE = 1024;
+
 pthread_mutex_t g_screenLock;
 
 /******************************************************************************/
@@ -84,7 +86,7 @@ int main(int argc, char const* argv[])
    }
 
     //Init variables
-    const int NUM_THREADS = 50;
+    const int NUM_THREADS = 100;
     pthread_t testThreads[NUM_THREADS];
     struct hostAddr myHostAddr;
     myHostAddr.ipAddr = argv[1];
@@ -104,8 +106,9 @@ int main(int argc, char const* argv[])
                        nullptr,
                        threadExecution,
                        (void *)&myHostAddr);
+        //pthread_detach(testThreads[i]);
 
-        usleep(100);
+        usleep(1000);
     }
 
     //Wait for threads to join after completion
@@ -129,7 +132,7 @@ void* threadExecution(void* inHostAddr)
             CALC_CONV = "conversion",
             SUCCESS = "0",
             FAIL = "-1";
-    char buffer[1024] = { 0 };
+    char buffer[BUFFER_SIZE] = { 0 };
     const char *serverAddress = ((hostAddr*)inHostAddr)->ipAddr.c_str();
     const int port = atoi((*(hostAddr*)inHostAddr).port.c_str());
     bool bConnect = false;
@@ -156,7 +159,7 @@ void* threadExecution(void* inHostAddr)
     if (bConnect == true)
     {
         //Reset buffers and Authenticate user
-        bzero(buffer, 1024);
+        bzero(buffer, BUFFER_SIZE);
         connectRPC = CONNECT + ";";
 
         //Get credentials from user
@@ -182,8 +185,7 @@ void* threadExecution(void* inHostAddr)
         //Use Calculate Expression
 
         //Clear buffers
-        bzero(buffer, 1024);
-        arrayTokens.clear();
+        bzero(buffer, BUFFER_SIZE);
 
         //Create message to be sent
         calcExpRPC = CALC_EXPR + ";";
@@ -200,7 +202,6 @@ void* threadExecution(void* inHostAddr)
 
         //read response
         readBuffer(sock, buffer);
-        ParseTokens(buffer, arrayTokens);
 
         //Sleep
         usleep(10000);
@@ -208,7 +209,7 @@ void* threadExecution(void* inHostAddr)
         //Use Stats RPC
 
         //Clear buffers
-        bzero(buffer, 1024);
+        bzero(buffer, BUFFER_SIZE);
         arrayTokens.clear();
 
         //Create message to be sent
@@ -226,7 +227,6 @@ void* threadExecution(void* inHostAddr)
 
         //read response
         readBuffer(sock, buffer);
-        ParseTokens(buffer, arrayTokens);
 
         //Sleep
         usleep(10000);
@@ -234,8 +234,7 @@ void* threadExecution(void* inHostAddr)
         //Use Conversion RPC
 
         //Clear buffers
-        bzero(buffer, 1024);
-        arrayTokens.clear();
+        bzero(buffer, BUFFER_SIZE);
 
         //Create message to be sent
         convRPC = CALC_CONV + ";";
@@ -247,7 +246,6 @@ void* threadExecution(void* inHostAddr)
 
         //read response
         readBuffer(sock, buffer);
-        ParseTokens(buffer, arrayTokens);
 
         //Sleep
         usleep(10000);
@@ -255,8 +253,7 @@ void* threadExecution(void* inHostAddr)
         //Use Disconnect RPC
 
         //Clear buffers
-        bzero(buffer, 1024);
-        arrayTokens.clear();
+        bzero(buffer, BUFFER_SIZE);
 
         //Create message to be sent to server
         disconnectRPC = DISCONNECT + ";";
@@ -267,7 +264,8 @@ void* threadExecution(void* inHostAddr)
 
         //read response
         readBuffer(sock, buffer);
-        ParseTokens(buffer, arrayTokens);
+        close(sock);
+
 
     }
     else
@@ -276,9 +274,7 @@ void* threadExecution(void* inHostAddr)
         printf("Exit without calling RPC");
         pthread_mutex_lock(&g_screenLock);
     }
-
-   // Terminate connection
-   close(sock);
+    return nullptr;
 }
 
 void sendBuffer(int sock, char *buffer)
@@ -297,8 +293,8 @@ void sendBuffer(int sock, char *buffer)
 
 void readBuffer(int sock, char *buffer)
 {
-    bzero(buffer, 1024);
-    read(sock, buffer, 1024);
+    bzero(buffer, BUFFER_SIZE);
+    read(sock, buffer, BUFFER_SIZE);
 
     pthread_mutex_lock(&g_screenLock);
     printf("Socket %d <-- %s\n", sock, buffer);
