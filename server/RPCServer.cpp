@@ -126,6 +126,7 @@ void* startThread(void* input) {
     }
 
     //Memory cleanup
+    close(socket);
     delete cHandler;
     cHandler = nullptr;
 
