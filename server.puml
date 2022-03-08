@@ -78,14 +78,15 @@ class RPCServer {
 
 Class Authenticator {
     - m_users: unordered_map<string, string>
-    - readFile(const string &filename, char delim = ','): void
-
+    - readFile(const string &filename, char delim = ','):
+    + authenticate(const string &username, const string &password): bool
+    + Authenticator(const string &filename)
 
 }
 
 RPCServer *-- ClientHandler
 ClientHandler *-- Calculator
-
+ClientHandler *-- Authenticator
 
 
 @enduml

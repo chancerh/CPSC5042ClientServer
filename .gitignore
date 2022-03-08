@@ -9,3 +9,7 @@ startServer
 .vscode
 *.el
 *.elc
+clientOUt.txt
+clientTestDriver
+output.txt
+ubuntu-xenial-16.04-cloudimg-console.log
