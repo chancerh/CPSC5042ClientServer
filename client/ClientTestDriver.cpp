@@ -92,8 +92,6 @@ int main(int argc, char const* argv[])
     myHostAddr.ipAddr = argv[1];
     myHostAddr.port = argv[2];
 
-
-
     //Init screen mutex
     if (pthread_mutex_init(&g_screenLock, nullptr) < 0)
     {
@@ -226,7 +224,6 @@ void* threadExecution(void* inHostAddr)
                         to_string(rand() % 1000) + " " +
                         to_string(rand() % 1000) + " " +
                         to_string(rand() % 1000) + ";" ;
-
 
         //send buffer
         strcpy(buffer, &calcStatsRPC[0]);

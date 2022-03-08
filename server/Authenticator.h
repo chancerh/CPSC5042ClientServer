@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class Authenticator {
+class Authenticator{
 public:
     Authenticator(const string &fileName);
     ~Authenticator();
@@ -14,7 +14,6 @@ public:
 private:
     unordered_map<string, string> m_users;
     void readFile(const string &filename, char delim = ',');
-
 
 };
 
