@@ -45,8 +45,9 @@ public:
 
 private:
     int m_socket; //socket number
-    bool m_authenticated; //flag to track if client provided correct credentials and is logged in
+    bool m_authenticated; //flag tracking if client is logged in
     Authenticator m_authenticator;
+    int m_numOfRPCs;
 
     unordered_map<string,string> m_users; //map storing all username and
     // password pairs
