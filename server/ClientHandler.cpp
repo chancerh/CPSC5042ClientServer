@@ -22,6 +22,7 @@ ClientHandler::ClientHandler(int socket, const string& filename) :
     m_authenticated = false;
     //call Authenticator to authenticate username and password
     m_authenticator = Authenticator(filename);
+    m_numOfRPCs = 0;
 
 }
 /**
@@ -70,15 +71,18 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
     {
         // should be blocked when a new RPC has not called us yet
         //printf("Waiting for client to send buffer\n");
+        //Update total number of RPCs for server and client
+
 
         bzero(buffer, BUFFER_SIZE);
         valread = read(this->m_socket, buffer, BUFFER_SIZE);
-        pthread_mutex_lock(g_screenLock);
-        printf("Socket %d <-- %s\n", m_socket, buffer);
-        pthread_mutex_unlock(g_screenLock);
 
         pthread_mutex_lock(g_contextLock);
+        pthread_mutex_lock(g_screenLock);
         g_globalContext->g_rpcCount += 1;
+        m_numOfRPCs += 1;
+        printf("Socket %d (#%d) <-- %s\n", m_socket, m_numOfRPCs, buffer);
+        pthread_mutex_unlock(g_screenLock);
         pthread_mutex_unlock(g_contextLock);
 
         if (valread <= 0)
@@ -293,7 +297,7 @@ const
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
     pthread_mutex_lock(g_screenLock);
-    printf("Socket %d --> %s\n", m_socket, szBuffer);
+    printf("Socket %d (#%d) --> %s\n", m_socket, m_numOfRPCs, szBuffer);
     pthread_mutex_unlock(g_screenLock);
 }
 
@@ -304,13 +308,14 @@ void ClientHandler::printServerStats(const GlobalContext *g_globalContext,
                                      const string &phase) const
 {
     auto input = phase.c_str();
-    printf("\n\n");
+    printf("\n");
     printf("********************************************************\n");
     printf("%s Thread %lu on Socket %d.\n", input, pthread_self(), m_socket);
     printf("Max # of connections: %d\n", g_globalContext->g_maxConnection);
     printf("Active connections: %d\n", g_globalContext->g_activeConnection);
     printf("Total # of connections: %d\n", g_globalContext->g_totalConnection);
-    printf("Total # of RPCs: %d\n", g_globalContext->g_rpcCount);
+    printf("Total # of Server handled RPCs: %d\n", g_globalContext->g_rpcCount);
+    printf("Total # of Client instance RPCs: %d\n", m_numOfRPCs);
     printf("********************************************************\n\n");
 }
 
