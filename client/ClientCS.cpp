@@ -101,6 +101,7 @@ const string CONNECT = "connect",
 const char* logoffRPC = "disconnect;";
 char buffer[1024] = { 0 };
 char connected;
+char disconnected;
 const int SLEEP_TIME = 10;
 bool bConnect = false;
 
@@ -189,9 +190,10 @@ int main(int argc, char const* argv[])
 
     //Get RPC response from server
     read(sock, buffer, 1024);
+    disconnected = buffer[0];
 
-    //Check if buffer equal to disconnect
-    if ((string)buffer == "disconnect")
+    //check if buffer equal to disconnect
+    if (disconnected == '0')
     {
         cout << "Disconnected successfully" << endl;
     }
@@ -373,7 +375,7 @@ void processConversion() {
         do{
             cout << "\nEnter Selection: ";
             getline(cin, choice);
-        }while(validateInteger(choice));
+        }while(!validateInteger(choice));
 
         //Direct user's choice and call conversion methods
         switch(stoi(choice)){
