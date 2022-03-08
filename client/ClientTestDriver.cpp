@@ -3,17 +3,17 @@
 //Version : 1.0
 //Filename: ClientTestDriver.cpp
 
-#include <stdio.h>
+#include <cstdio>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
 #include <iterator>
 #include <iostream>
-#include <string.h>
+#include <cstring>
 #include <termio.h>
 #include <pthread.h>
-#include <queue>
+
 
 using namespace std;
 
@@ -108,7 +108,7 @@ int main(int argc, char const* argv[])
                        (void *)&myHostAddr);
 //        pthread_detach(testThreads[i]);
 
-        usleep(10000);
+        usleep(5000);
     }
 
     //sleep(10);
@@ -120,6 +120,7 @@ int main(int argc, char const* argv[])
         pthread_join(testThreads[i], nullptr);
     }
 
+    sleep(3);
 
 
     return 0;
@@ -158,6 +159,7 @@ void* threadExecution(void* inHostAddr)
        printf("ERROR: Failed to connect to server. Exiting thread "
                        "%lu\n.", pthread_self());
        pthread_mutex_unlock(&g_screenLock);
+       return nullptr;
    }
 
    //testing if client connect to server

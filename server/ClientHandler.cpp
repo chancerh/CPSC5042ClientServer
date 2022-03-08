@@ -74,7 +74,7 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
         bzero(buffer, BUFFER_SIZE);
         valread = read(this->m_socket, buffer, BUFFER_SIZE);
         pthread_mutex_lock(g_screenLock);
-        printf("Received buffer on Socket %d: %s\n", m_socket, buffer);
+        printf("Socket %d <-- %s\n", m_socket, buffer);
         pthread_mutex_unlock(g_screenLock);
 
         pthread_mutex_lock(g_contextLock);
@@ -293,7 +293,7 @@ const
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
     pthread_mutex_lock(g_screenLock);
-    printf("Sent buffer on Socket %d: %s\n", m_socket, szBuffer);
+    printf("Socket %d --> %s\n", m_socket, szBuffer);
     pthread_mutex_unlock(g_screenLock);
 }
 
