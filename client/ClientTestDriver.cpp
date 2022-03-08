@@ -77,20 +77,22 @@ int main(int argc, char const* argv[])
    cout << "*************************************************" << endl;
 
    //check if user entered correct # of Command Line args for IP and Port
-   if (argc < 3)
+   if (argc < 4)
    {
       //If insufficient number of args, print error and exit program.
-      cout << "\nMissing IP Address or Port number.\n";
+      cout << "\nMissing IP Address or Port number, or # of threads.\n";
       cout << "Exiting Client Application...\n";
       return -1;
    }
 
     //Init variables
-    const int NUM_THREADS = 100;
+    const int NUM_THREADS = stoi (argv[3]);
     pthread_t testThreads[NUM_THREADS];
     struct hostAddr myHostAddr;
     myHostAddr.ipAddr = argv[1];
     myHostAddr.port = argv[2];
+
+
 
     //Init screen mutex
     if (pthread_mutex_init(&g_screenLock, nullptr) < 0)
@@ -106,16 +108,21 @@ int main(int argc, char const* argv[])
                        nullptr,
                        threadExecution,
                        (void *)&myHostAddr);
-        //pthread_detach(testThreads[i]);
+//        pthread_detach(testThreads[i]);
 
-        usleep(1000);
+        usleep(10000);
     }
+
+    //sleep(10);
+
 
     //Wait for threads to join after completion
     for (int i = 0; i < NUM_THREADS; i++)
     {
         pthread_join(testThreads[i], nullptr);
     }
+
+
 
     return 0;
 }
@@ -180,7 +187,7 @@ void* threadExecution(void* inHostAddr)
         }
 
         //Sleep
-        usleep(10000);
+        usleep(1000000);
 
         //Use Calculate Expression
 
