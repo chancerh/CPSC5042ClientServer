@@ -20,6 +20,7 @@ ClientHandler::ClientHandler(int socket, const string& filename) :
 {
     m_socket = socket;
     m_authenticated = false;
+    //call Authenticator to authenticate username and password
     m_authenticator = Authenticator(filename);
 
 }
@@ -114,14 +115,14 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
             bContinue = false; // Leaving this loop, as we are done
             break;
         }
-
+        //If connected, authenticate = true, and RPC equal to one of the calculator functions
+        //then, call the ProcessCal() to calculate input
         else if(bConnected && m_authenticated && (aString == CALC_EXPR ||
                                                   aString == CALC_CONV ||
                                                   aString == CALC_STAT))
         {
             ProcessCal(arrayTokens, g_screenLock);
         }
-
         //If RPC is not supported, print status on screen
         else
         {
@@ -145,8 +146,6 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
     return true;
 }
 
-
-
 //*************************
 //      Private method
 //**************************
@@ -157,8 +156,6 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
  */
 bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens, pthread_mutex_t *g_screenLock)
 {
-
-
     //Define the position of the username and the password in the token
     const int USERNAMETOKEN = 1;
     const int PASSWORDTOKEN = 2;
@@ -211,6 +208,10 @@ bool ClientHandler::ProcessDisconnectRPC(pthread_mutex_t *g_screenLock)
     return true;
 }
 
+/**
+ * ProcessCal will process the arrayTokens(incoming RPC) and extract it to each of the calculator function
+ * ,then return the result after calculation back to the client
+ */
 bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t *g_screenLock)
 {
     //Declaring a string to store the result
@@ -262,7 +263,7 @@ bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t
 }
 
 /**
- * Going to populate a String vector with tokens extracted from the string the
+ * ParseTokens is going to populate a String vector with tokens extracted from the string the
  * client sent. The delimiter will be a ";"
  * An example buffer could be "connect;mike;mike;"
  */
@@ -281,6 +282,9 @@ void ClientHandler::ParseTokens(char * buffer, std::vector<std::string> & a)
     return;
 }
 
+/**
+ * sendBuffer is a helper function to send the result to client
+ */
 void ClientHandler::sendBuffer(char *szBuffer, pthread_mutex_t *g_screenLock)
 const
 {
@@ -293,6 +297,9 @@ const
     pthread_mutex_unlock(g_screenLock);
 }
 
+/**
+ * printServerStats will print out the status of server in each thread
+ */
 void ClientHandler::printServerStats(const GlobalContext *g_globalContext,
                                      const string &phase) const
 {

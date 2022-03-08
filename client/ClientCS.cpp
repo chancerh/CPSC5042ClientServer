@@ -191,6 +191,26 @@ int main(int argc, char const* argv[])
     return 0;
 }
 
+bool validateInteger(string input)
+{
+    for(int i = 0; i < input.size(); i++){
+        //check if string input contain int
+        if(!isdigit(input[i])){
+            return false;
+        }
+        else{
+            //convert string to int
+            int tmp = stoi(input);
+            //check if out of range
+            if(tmp > 9 || tmp < 0)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void userInterface(){
     string userInput;
     const int CalcExpression = 1,
@@ -208,9 +228,12 @@ void userInterface(){
         cout <<  "2. Statistics" << endl;
         cout <<  "3. Conversion (Binary/Decimal/Hexadecimal)" << endl;
         cout <<  "4. Quit" << endl << endl;
-        cout << "Enter selection: ";
-        getline(cin, userInput);
 
+        //Validate the user selection input, refrain from empty/invalid input
+        do{
+            cout << "Enter selection: ";
+            getline(cin, userInput);
+        }while(!validateInteger(userInput));
 
         switch(stoi(userInput))
         {
