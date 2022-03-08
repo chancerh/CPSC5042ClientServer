@@ -60,7 +60,7 @@ RPCServer::~RPCServer()
 bool RPCServer::StartServer()
 {
     int opt = 1;
-    const int BACKLOG = 10;
+    const int BACKLOG = 1000;
 
     // Creating socket file descriptor
     if ((m_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -123,11 +123,13 @@ void* startThread(void* input) {
         pthread_mutex_lock(&g_screenLock);
         printf("Exception on Socket %d", socket);
         pthread_mutex_unlock(&g_screenLock);
+        close(socket);
     }
 
     //Memory cleanup
     delete cHandler;
     cHandler = nullptr;
+
 
     return nullptr;
 }
@@ -157,6 +159,7 @@ bool RPCServer::ListenForClient()
 //        printf("Socket: %d: Launching Thread\n", m_socket);
 
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
+        pthread_detach(thread_id);
 
     }
 

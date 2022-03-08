@@ -1,7 +1,7 @@
 //Author  : Group#2
 //Date    : 02/07/2022
 //Version : 1.0
-//Filename: ClientCS.cpp
+//Filename: ClientTestDriver.cpp
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -13,6 +13,7 @@
 #include <string.h>
 #include <termio.h>
 #include <pthread.h>
+#include <queue>
 
 using namespace std;
 
@@ -20,6 +21,10 @@ struct hostAddr {
     string ipAddr;
     string port;
 };
+
+const int BUFFER_SIZE = 1024;
+
+pthread_mutex_t g_screenLock;
 
 /******************************************************************************/
 /**************************** Function Prototypes *****************************/
@@ -48,11 +53,20 @@ void ParseTokens(char* buffer, std::vector<std::string>& a);
  * @return A bool indicating if the connection was successful or not
  */
 bool ConnectToServer(const char *serverAddress, int port, int & sock);
+
+/**
+ * Sends a buffer to the server
+ * @param sock
+ * @param buffer
+ */
 void sendBuffer(int sock, char *buffer);
-/******************************************************************************/
-/********************** End of Function Prototypes ****************************/
+
+void readBuffer(int sock, char *buffer);
+
 void* threadExecution(void *hostAddr);
 
+/******************************************************************************/
+/********************** End of Function Prototypes ****************************/
 /******************************************************************************/
 
 int main(int argc, char const* argv[])
@@ -63,171 +77,208 @@ int main(int argc, char const* argv[])
    cout << "*************************************************" << endl;
 
    //check if user entered correct # of Command Line args for IP and Port
-   if (argc < 3)
+   if (argc < 4)
    {
       //If insufficient number of args, print error and exit program.
-      cout << "\nMissing IP Address or Port number.\n";
+      cout << "\nMissing IP Address or Port number, or # of threads.\n";
       cout << "Exiting Client Application...\n";
       return -1;
    }
 
-   const int NUM_THREADS = 50;
-   pthread_t testThreads[NUM_THREADS];
-   struct hostAddr myHostAddr;
-   myHostAddr.ipAddr = argv[1];
-   myHostAddr.port = argv[2];
+    //Init variables
+    const int NUM_THREADS = stoi (argv[3]);
+    pthread_t testThreads[NUM_THREADS];
+    struct hostAddr myHostAddr;
+    myHostAddr.ipAddr = argv[1];
+    myHostAddr.port = argv[2];
 
-   for (int i = 0; i < NUM_THREADS; i++)
-   {
-      pthread_create(&testThreads[i], nullptr, threadExecution, (void *)
-      &myHostAddr);
-      usleep(100);
-   }
+    //Init screen mutex
+    if (pthread_mutex_init(&g_screenLock, nullptr) < 0)
+    {
+        printf("ERROR: Failed to init mutex. Exiting program.\n");
+        return -1;
+    }
 
-   for (int i = 0; i < NUM_THREADS; i++)
-   {
-      pthread_join(testThreads[i], nullptr);
-   }
+    //Create Threads
+    for (int i = 0; i < NUM_THREADS; i++)
+    {
+        pthread_create(&testThreads[i],
+                       nullptr,
+                       threadExecution,
+                       (void *)&myHostAddr);
+//        pthread_detach(testThreads[i]);
 
-   return 0;
+        usleep(10000);
+    }
+
+    //sleep(10);
+
+
+    //Wait for threads to join after completion
+    for (int i = 0; i < NUM_THREADS; i++)
+    {
+        pthread_join(testThreads[i], nullptr);
+    }
+
+
+
+    return 0;
 }
 
 void* threadExecution(void* inHostAddr)
-{//initialize data
-   int sock = 0;
-   struct sockaddr_in serv_addr;
-   string connectRPC = "connect;";
-   string calcExpRPC = "calculateExpression;";
-   //string calcExpRPC = "";
-   const char* logoffRPC = "disconnect;";
-   char buffer[1024] = { 0 };
-   const char* arguments[3];
-   const char *serverAddress = ((hostAddr*)inHostAddr)->ipAddr.c_str();
-   const int port = atoi((*(hostAddr*)inHostAddr).port.c_str());
-   char connected;
-   const int SLEEP_TIME = 10;
-   bool bConnect = false;
+{
+    //initialize data
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+    const string CONNECT = "connect",
+            DISCONNECT = "disconnect",
+            CALC_EXPR = "calculateExpression",
+            CALC_STAT = "calculateStats",
+            CALC_CONV = "conversion",
+            SUCCESS = "0",
+            FAIL = "-1";
+    char buffer[BUFFER_SIZE] = { 0 };
+    const char *serverAddress = ((hostAddr*)inHostAddr)->ipAddr.c_str();
+    const int port = atoi((*(hostAddr*)inHostAddr).port.c_str());
+    bool bConnect = false;
+    string connectRPC,
+            disconnectRPC,
+            calcExpRPC,
+            calcStatsRPC,
+            convRPC;
+    vector<string> arrayTokens;
 
 
    bConnect = ConnectToServer(serverAddress, port, sock);
 
-
+   //if failed to connect the to server, print error message and exit thread
+   if(!bConnect)
+   {
+       pthread_mutex_lock(&g_screenLock);
+       printf("ERROR: Failed to connect to server. Exiting thread "
+                       "%lu\n.", pthread_self());
+       pthread_mutex_unlock(&g_screenLock);
+   }
 
    //testing if client connect to server
-   if (bConnect == true)
-   {
-      //keep asking for user input, successfully connected.
-      do
-      {
-         //reset buffers
-         memset(buffer, 0 , 1024);
-         connectRPC = "connect;";
+    if (bConnect == true)
+    {
+        //Reset buffers and Authenticate user
+        bzero(buffer, BUFFER_SIZE);
+        connectRPC = CONNECT + ";";
 
-         //Get credentials from user
-         connectRPC = connectRPC + getCredentials() + ";";
+        //Get credentials from user
+        connectRPC = connectRPC + getCredentials() + ";";
 
-         //Copy the created the RPC string to the buffer
-         strcpy(buffer, &connectRPC[0]);
-         sendBuffer(sock, buffer);
+        //Copy the created the RPC string to the buffer
+        strcpy(buffer, &connectRPC[0]);
+        sendBuffer(sock, buffer);
 
-         //Read from server
-         read(sock, buffer, 1024);
-         connected = buffer[0];
+        //Read from server
+        readBuffer(sock, buffer);
+        ParseTokens(buffer, arrayTokens);
 
-         //check if successfully connected
-         if (connected == '0')
-         {
-            cout << "\nSocket: " << sock << ", Login successful!" << endl;
-            usleep(10000);
-         }
-         else
-         {
-            cout << "\nSocket: "<< sock << ", Invalid login!" << endl;
-         }
-      } while (connected != '0');
-   }
-   else
-   {
-      printf("Exit without calling RPC");
-   }
+        //check if successfully connected
+        if (arrayTokens[0] != SUCCESS)
+        {
+            return nullptr;
+        }
 
-   //Sleep for 10 seconds
-//    printf("\nSleeping for %d seconds...\n\n", SLEEP_TIME);
-//    sleep(SLEEP_TIME)
+        //Sleep
+        usleep(1000000);
 
-   if (bConnect == true)
-   {
-      string expr;
-      vector<string> result;
+        //Use Calculate Expression
 
-      // calcExpRPC = "calculateExpression;";
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
 
-      expr = to_string(rand() % 1000) + "/" +
-              to_string(rand() % 1000) + " - " + to_string(rand() % 1000) +
-              to_string(rand() % 1000) + " ^ " + "2" + " +" +
-              to_string(rand() % 1000) + "*" + to_string(rand() % 1000);
+        //Create message to be sent
+        calcExpRPC = CALC_EXPR + ";";
+        calcExpRPC = calcExpRPC + to_string(rand() % 1000) + "/" +
+                                  to_string(rand() % 1000) + " - " +
+                                  to_string(rand() % 1000) + " +" +
+                                  to_string(rand() % 1000) + " ^ " + "2" + " +" +
+                                  to_string(rand() % 1000) + "*" +
+                                  to_string(rand() % 1000) + ";";
 
-      cout << "\nSocket: " << sock << ", " << expr << endl;
-      calcExpRPC = calcExpRPC + expr + ";";
-      strcpy(buffer, &calcExpRPC[0]);
+        //send buffer
+        strcpy(buffer, &calcExpRPC[0]);
+        sendBuffer(sock, buffer);
 
-      //Add a null terminator
-      int nlen = strlen(buffer);
-      buffer[nlen] = 0;
+        //read response
+        readBuffer(sock, buffer);
 
-      //Send the created RPC buffer to server
-      send(sock, buffer, strlen(buffer) + 1, 0);
+        //Sleep
+        usleep(10000);
 
-      //Read from server
-      read(sock, buffer, 1024);
-      ParseTokens(buffer, result);
+        //Use Stats RPC
 
-      if(result[1] == "0")
-      {
-         printf("\nSocket: %d, %s\n",sock, result[0].c_str());
-      }
-      else
-      {
-         printf("%s\n", "Invalid expression.");
-      }
-   }
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
+        arrayTokens.clear();
 
-   // Do a Disconnect Message
-   if (bConnect == true)
-   {
-      cout << "\nSocket: " << sock << ", Disconnecting from Server" << endl;
+        //Create message to be sent
+        calcStatsRPC = CALC_STAT + ";";
+        calcStatsRPC = calcStatsRPC + to_string(rand() % 1000) + " " +
+                        to_string(rand() % 1000) + " " +
+                        to_string(rand() % 1000) + " " +
+                        to_string(rand() % 1000) + " " +
+                        to_string(rand() % 1000) + ";" ;
 
-      //reset buffers
-      memset(buffer, 0 , 1024);
+        //send buffer
+        strcpy(buffer, &calcStatsRPC[0]);
+        sendBuffer(sock, buffer);
 
-      //create the buffer to be sent via RPC
-      strcpy(buffer, logoffRPC);
-      int nlen = strlen(buffer);
-      buffer[nlen] = 0;   // Put the null terminator
+        //read response
+        readBuffer(sock, buffer);
 
-      //send buffer
-      send(sock, buffer, strlen(buffer) + 1, 0);
+        //Sleep
+        usleep(10000);
 
-      //get RPC response from server
-      read(sock, buffer, 1024);
+        //Use Conversion RPC
 
-      //check if buffer equal to disconnect
-      if ((string)buffer == "0")
-      {
-         cout << "Socket: " << sock << ", Disconnected successfully" << endl;
-      }
-      else
-      {
-         cout << "Failed to disconnect successfully" << endl;
-      }
-   }
-   else
-   {
-      printf("Exit without calling RPC");
-   }
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
 
-   // Terminate connection
-   close(sock);
+        //Create message to be sent
+        convRPC = CALC_CONV + ";";
+        convRPC = convRPC + "5;" + to_string(rand() % 1000) + ";";
+
+        //send buffer
+        strcpy(buffer, &convRPC[0]);
+        sendBuffer(sock, buffer);
+
+        //read response
+        readBuffer(sock, buffer);
+
+        //Sleep
+        usleep(10000);
+
+        //Use Disconnect RPC
+
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
+
+        //Create message to be sent to server
+        disconnectRPC = DISCONNECT + ";";
+
+        //send buffer
+        strcpy(buffer, &disconnectRPC[0]);
+        sendBuffer(sock, buffer);
+
+        //read response
+        readBuffer(sock, buffer);
+        close(sock);
+
+
+    }
+    else
+    {
+        pthread_mutex_lock(&g_screenLock);
+        printf("Exit without calling RPC");
+        pthread_mutex_lock(&g_screenLock);
+    }
+    return nullptr;
 }
 
 void sendBuffer(int sock, char *buffer)
@@ -237,14 +288,28 @@ void sendBuffer(int sock, char *buffer)
    buffer[nlen] = 0;
 
    //Send the created RPC buffer to server
-   send(sock, buffer, strlen(buffer) + 1, 0);
+    send(sock, buffer, strlen(buffer) + 1, 0);
+    pthread_mutex_lock(&g_screenLock);
+    printf("Socket %d --> %s\n", sock, buffer);
+    pthread_mutex_unlock(&g_screenLock);
+
+}
+
+void readBuffer(int sock, char *buffer)
+{
+    bzero(buffer, BUFFER_SIZE);
+    read(sock, buffer, BUFFER_SIZE);
+
+    pthread_mutex_lock(&g_screenLock);
+    printf("Socket %d <-- %s\n", sock, buffer);
+    pthread_mutex_unlock(&g_screenLock);
 }
 
 
 string getCredentials()
 {
    //return
-   return ("Aacer;Pass123!");
+   return ("Mike;Mike");
 }
 
 
@@ -270,13 +335,17 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock)
    struct sockaddr_in serv_addr;
    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
    {
-      printf("\n Socket creation error \n");
-      return false;
+       pthread_mutex_lock(&g_screenLock);
+       printf("\n Socket creation error \n");
+       pthread_mutex_unlock(&g_screenLock);
+       return false;
    }
       //Debuging
    else
    {
-      printf("Socket: %d connected\n", sock);
+       pthread_mutex_lock(&g_screenLock);
+       printf("Socket: %d connected\n", sock);
+       pthread_mutex_unlock(&g_screenLock);
    }
 
    serv_addr.sin_family = AF_INET;
@@ -285,14 +354,18 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock)
    // Convert IPv4 and IPv6 addresses from text to binary form
    if (inet_pton(AF_INET, serverAddress, &serv_addr.sin_addr) <= 0)
    {
-      printf("\nInvalid address/ Address not supported \n");
+       pthread_mutex_lock(&g_screenLock);
+       printf("\nInvalid address/ Address not supported \n");
+       pthread_mutex_unlock(&g_screenLock);
       return false;
    }
 
    //Connect to server
    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
    {
-      printf("\nConnection Failed \n");
+       pthread_mutex_lock(&g_screenLock);
+       printf("\nConnection Failed \n");
+       pthread_mutex_unlock(&g_screenLock);
       return false;
    }
 
