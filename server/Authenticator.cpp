@@ -14,7 +14,8 @@ Authenticator::Authenticator(const string &fileName)
 }
 Authenticator::~Authenticator() = default;
 
-bool Authenticator::authenticate(const string &username, const string &password) {
+bool Authenticator::authenticate(const string &username, const string &password)
+{
     // First check if the user exists
     unordered_map<string, string>::const_iterator mapIterator =
             m_users.find(username);
@@ -36,7 +37,8 @@ bool Authenticator::authenticate(const string &username, const string &password)
 
 }
 
-void Authenticator::readFile(const string &filename, char delim) {
+void Authenticator::readFile(const string &filename, char delim)
+{
 
     // open the file
     ifstream infile(filename);

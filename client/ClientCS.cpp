@@ -23,6 +23,7 @@ using namespace std;
  * Prompts the user to enter credentials via keyboard, then returns the
  * credentials in a format ready for RPC
  * @return A string containing user credentials
+ *
  */
 string getCredentials();
 
@@ -30,6 +31,7 @@ string getCredentials();
  * Parse RPC buffer into tokens using delimiter ";"
  * @param buffer A char array pointer containing the buffer to be parsed
  * @param a A vector of strings containing the parsed RPC parameters
+ *
  */
 void ParseTokens(char* buffer, std::vector<std::string>& a);
 
@@ -40,6 +42,7 @@ void ParseTokens(char* buffer, std::vector<std::string>& a);
  * @param port An int containing the port on the server for the connection
  * @param sock An int containing the socket number
  * @return A bool indicating if the connection was successful or not
+ *
  */
 bool ConnectToServer(const char *serverAddress, int port, int & sock);
 
@@ -54,15 +57,27 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock);
 void userInterface();
 
 /**
+ * Helper function to validate user's input for menu, refrain from entering
+ * invalid/empty input
+ * @param input An integer for inputting menu options
+ * @return true if the input is valid
+ */
+bool validateInteger(string input);
+
+/**
  * Function to process basic calculator
  *
  */
 void processCalcExpression();
 
 /**
+ * Function to process five number summary for statistic analysis, and if the
+ * input contains more than 2 numbers, extra analysis (standard deviation
+ * and variance) will be displayed
  *
  */
 void processCalcStats();
+
 /**
  * Function to process conversion among binary, decimal, hexadecimal expression
  *
@@ -73,12 +88,11 @@ void processConversion();
 /********************** End of Function Prototypes ****************************/
 /******************************************************************************/
 
-//initialize data
+//Initialize data
 int sock = 0;
 struct sockaddr_in serv_addr;
 
-//SUPPORTED RPCs
-//Conversion parted added and fixed by Jusmin 3/2/22
+//Global variables for supported RPCs calls from client
 const string CONNECT = "connect",
         DISCONNECT = "disconnect",
         CALC_EXPR = "calculateExpression",
@@ -93,12 +107,12 @@ bool bConnect = false;
 
 int main(int argc, char const* argv[])
 {
-    // Welcome the user
+    //Welcome the user
     cout << "*************************************************" << endl;
     cout << "*   Welcome to the Group 2 Client Application   *" << endl;
     cout << "*************************************************" << endl;
 
-    //check if user entered correct # of Command Line args for IP and Port
+    //Check if user entered correct # of Command Line args for IP and Port
     if (argc < 3)
     {
         //If insufficient number of args, print error and exit program.
@@ -112,7 +126,7 @@ int main(int argc, char const* argv[])
 
     bConnect = ConnectToServer(serverAddress, port, sock);
 
-    // if we fail to connect to server, exit the program
+    //If we fail to connect to server, exit the program
     if(!bConnect){
         cout << "Fail to connect to server, exiting program.." << endl;
         return -1;
@@ -120,12 +134,12 @@ int main(int argc, char const* argv[])
 
     string connectRPC;
 
-    // start plugging in interface
+    //Start plugging in interface
     //testing if client connect to server
     //keep asking for user input, successfully connected.
     do
     {
-        //reset buffers
+        //Reset buffers
         memset(buffer, 0 , 1024);
         connectRPC = CONNECT + ";";
 
@@ -146,7 +160,7 @@ int main(int argc, char const* argv[])
         read(sock, buffer, 1024);
         connected = buffer[0];
 
-        //check if successfully connected
+        //Check if successfully connected
         if (connected == '0')
         {
             cout << "\nLogin successful!" << endl;
@@ -157,24 +171,24 @@ int main(int argc, char const* argv[])
         }
     } while (connected != '0');
 
-    // implement user interface
+    //Implement user interface
     userInterface();
 
-    // Do a Disconnect Mes
+    //Do a Disconnect message
     cout << "Disconnecting from Server" << endl;
 
-    //reset buffers
+    //Reset buffers
     memset(buffer, 0 , 1024);
 
-    //create the buffer to be sent via RPC
+    //Create the buffer to be sent via RPC
     strcpy(buffer, logoffRPC);
     int nlen = strlen(buffer);
     buffer[nlen] = 0;   // Put the null terminator
 
-    //send buffer
+    //Send buffer
     send(sock, buffer, strlen(buffer) + 1, 0);
 
-    //get RPC response from server
+    //Get RPC response from server
     read(sock, buffer, 1024);
     disconnected = buffer[0];
 
@@ -187,7 +201,7 @@ int main(int argc, char const* argv[])
         cout << "Failed to disconnect successfully" << endl;
     }
 
-    // Terminate connection
+    //Terminate connection
     close(sock);
 
     return 0;
@@ -213,15 +227,19 @@ bool validateInteger(string input)
     return true;
 }
 
-void userInterface(){
+void userInterface()
+{
+    //Initiate user input and menu option variables
     string userInput;
     const int CalcExpression = 1,
               CalcStats = 2,
               CalcConversion = 3,
               quitProgram = 4;
+
+    //Prompt user to choose the functions presented on the menu, each menu
+    //option will direct the calculation towards to designated methods
     do
     {
-
         cout << endl;
         cout << "*************************************************" << endl;
         cout << "***********            Menu            **********" << endl;
@@ -237,6 +255,7 @@ void userInterface(){
             getline(cin, userInput);
         }while(!validateInteger(userInput));
 
+        //Takes user's choice and perform desired calculation
         switch(stoi(userInput))
         {
             case CalcExpression:
@@ -254,7 +273,8 @@ void userInterface(){
     }while(stoi(userInput) != quitProgram && stoi(userInput) > 0);
 }
 
-void processCalcExpression(){
+void processCalcExpression()
+{
     string expr;
     string calcExpRPC = CALC_EXPR + ";";
     vector<string> result;
@@ -277,7 +297,7 @@ void processCalcExpression(){
 
     if(result[1] == "0")
     {
-        printf("%s\n", result[0].c_str());
+        printf("Result : %s\n", result[0].c_str());
     }
     else
     {
@@ -285,7 +305,8 @@ void processCalcExpression(){
     }
 }
 
-void processCalcStats(){
+void processCalcStats()
+{
     string expr;
     string calcStats = CALC_STAT + ";";
     vector<string> result;
@@ -307,9 +328,10 @@ void processCalcStats(){
     read(sock, buffer, 1024);
     ParseTokens(buffer, result);
     string printString;
+
+    //Print
     if(result[result.size() - 1] == "0")
     {
-
         printString = "Min        " + result[0] + "\n" +
                       "1st Qu.    " + result[1] + "\n" +
                       "Median     " + result[2] + "\n" +
@@ -321,7 +343,6 @@ void processCalcStats(){
         {
             printString = printString + "Std. Dev   " + result[6] + "\n" +
                                         "Variance   " + result[7] + "\n";
-
         }
         printf("%s\n", printString.c_str());
     }
@@ -337,6 +358,7 @@ void processConversion() {
     vector<string> result;
     string calcConversion;
 
+    //Present menu options for conversion
     do{
         calcConversion = CALC_CONV + ";";
         cout << endl;
@@ -349,9 +371,13 @@ void processConversion() {
         cout<<"6. Convert Hexadecimal to Decimal "<<endl;
         cout<<"7. Return to main menu"<<endl;
 
-        cout << "\nEnter Selection: ";
-        getline(cin, choice);
+        //Validate the user selection input, refrain from empty/invalid input
+        do{
+            cout << "\nEnter Selection: ";
+            getline(cin, choice);
+        }while(!validateInteger(choice));
 
+        //Direct user's choice and call conversion methods
         switch(stoi(choice)){
             case 1:
                 cout << "Enter number to be converted: ";
@@ -380,6 +406,8 @@ void processConversion() {
             default:
                 return;
         }
+        //Append user's conversion string, menu choice, and the original
+        //input to the buffer
         calcConversion = calcConversion + choice + ";" + expr + ";";
         strcpy(buffer, &calcConversion[0]);
         //Add a null terminator
@@ -401,7 +429,7 @@ void processConversion() {
         {
             printf("%s\n", "Invalid expression.");
         }
-        //reset result, so it won't carry the old one
+        //Reset result, so it won't carry the old one
         result.clear();
         sleep(1);
     }
@@ -410,17 +438,17 @@ void processConversion() {
 
 string getCredentials()
 {
-    // create terminal interface that is provided to control asynchronous
-    // communications ports
+    //Create terminal interface that is provided to control asynchronous
+    //communications ports
     struct termios orig_termios;
 
     string username, password;
-    //take in username and password
+    //Take in username and password
     cout << "\nPlease enter your username: ";
     getline(cin, username);
     cout << "Please enter your password: ";
 
-    //modify console settings to mask password
+    //Modify console settings to mask password
     tcgetattr(STDIN_FILENO, &orig_termios);
     struct termios new_termios = orig_termios;
     new_termios.c_lflag &= ~ECHO;
@@ -429,10 +457,10 @@ string getCredentials()
     //Store user input
     getline(cin, password);
 
-    //restore the terminal settings to start echoing again
+    //Restore the terminal settings to start echoing again
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
 
-    //return
+    //Return
     return username + ";" + password;
 }
 

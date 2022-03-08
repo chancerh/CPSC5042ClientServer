@@ -36,7 +36,8 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
                                pthread_mutex_t *g_screenLock,
                                GlobalContext *g_globalContext)
 {
-    char buffer[1024] = { 0 };
+    const int BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE] = { 0 };
     std::vector<std::string> arrayTokens;
     int valread = 0;
     bool bConnected = false;
@@ -65,13 +66,13 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
     pthread_mutex_unlock(g_contextLock);
 
     //Loop while server is connected to client
-    while ((bContinue))
+    while (bContinue)
     {
         // should be blocked when a new RPC has not called us yet
         //printf("Waiting for client to send buffer\n");
 
-        bzero(buffer, sizeof(buffer));
-        valread = read(this->m_socket, buffer, sizeof(buffer));
+        bzero(buffer, BUFFER_SIZE);
+        valread = read(this->m_socket, buffer, BUFFER_SIZE);
         pthread_mutex_lock(g_screenLock);
         printf("Received buffer on Socket %d: %s\n", m_socket, buffer);
         pthread_mutex_unlock(g_screenLock);
@@ -107,11 +108,12 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
             }
         }
         //Process disconnect RPC if server connected
-        else if ((bConnected == true) && (aString == DISCONNECT))
+        else if (aString == DISCONNECT)
         {
             bStatusOk = ProcessDisconnectRPC(g_screenLock);
             bConnected = false;
             bContinue = false; // Leaving this loop, as we are done
+            break;
         }
         //If connected, authenticate = true, and RPC equal to one of the calculator functions
         //then, call the ProcessCal() to calculate input
@@ -193,13 +195,15 @@ bool ClientHandler::ProcessConnectRPC(std::vector<std::string>& arrayTokens, pth
 bool ClientHandler::ProcessDisconnectRPC(pthread_mutex_t *g_screenLock)
 {
     //Declare a buffer for the response
-    char szBuffer[16];
+    const int BUFFER_SIZE = 1024;
+    char szBuffer[BUFFER_SIZE] = {0};
 
     //Add response to the buffer
     strcpy(szBuffer, SUCCESS.c_str());
 
     // Send Response back on our socket
     sendBuffer(szBuffer, g_screenLock);
+    close(m_socket);
 
     return true;
 }
@@ -212,7 +216,8 @@ bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t
 {
     //Declaring a string to store the result
     string result;
-    char szBuffer[1024] = {0};
+    const int BUFFER_SIZE = 1024;
+    char szBuffer[BUFFER_SIZE] = {0};
 
     Calculator myCalc;
 
