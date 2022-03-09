@@ -13,27 +13,18 @@ public:
      * Get the number of RPCs
      * @return RPC count for the specific client
      */
-    int getRpcCount()
-    {
-        return m_RpcCount;
-    }
+    int getRpcCount();
 
     /**
      * Set the number of RPCs for a specific client
      * @param rpcCount
      */
-    void setRpcCount(int rpcCount)
-    {
-        m_RpcCount = rpcCount;
-    }
+    void setRpcCount(int rpcCount);
 
     /**
      * Increment the RPC count for a specific client
      */
-    void incrementRpcCount()
-    {
-        m_RpcCount ++;
-    }
+    void incrementRpcCount();
 
 private:
     int m_RpcCount = 0; //Count of RPCs sent by a client
