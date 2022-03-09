@@ -310,6 +310,10 @@ vector<string> Calculator::expTokenize(string &inExpression)
                 temp.clear();
                 tokens.push_back("*");
             }
+            else if (!tokens.empty() && tokens.back() == ")")
+            {
+                tokens.push_back("*");
+            }
 
           tokens.push_back(string(1, c));
         }
