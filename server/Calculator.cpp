@@ -399,6 +399,11 @@ vector<string> Calculator::expTokenize(string &inExpression)
         tokens.push_back(temp);
     }
 
+    for (bracketRefCount; bracketRefCount > 0; bracketRefCount--)
+    {
+        tokens.push_back(string(1, ')'));
+    }
+
     //return the tokens vector
     return tokens;
 }
