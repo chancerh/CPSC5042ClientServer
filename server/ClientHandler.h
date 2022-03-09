@@ -13,6 +13,7 @@
 #include "pthread.h"
 #include "GlobalContext.h"
 #include "Authenticator.h"
+#include "LocalContext.h"
 
 using namespace std;
 
@@ -47,7 +48,7 @@ private:
     int m_socket; //socket number
     bool m_authenticated; //flag tracking if client is logged in
     Authenticator m_authenticator;
-    int m_numOfRPCs;
+    LocalContext* localContext;
 
     unordered_map<string,string> m_users; //map storing all username and
     // password pairs

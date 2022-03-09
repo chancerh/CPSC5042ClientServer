@@ -22,13 +22,17 @@ ClientHandler::ClientHandler(int socket, const string& filename) :
     m_authenticated = false;
     //call Authenticator to authenticate username and password
     m_authenticator = Authenticator(filename);
-    m_numOfRPCs = 0;
+    localContext = new LocalContext();
 
 }
 /**
  * Destructor
  */
-ClientHandler::~ClientHandler() = default;
+ClientHandler::~ClientHandler()
+{
+    delete localContext;
+    localContext = nullptr;
+}
 
 /**
  * ProcessRPC will examine buffer and will essentially control
@@ -80,8 +84,8 @@ bool ClientHandler::ProcessRPC(pthread_mutex_t *g_contextLock,
         pthread_mutex_lock(g_contextLock);
         pthread_mutex_lock(g_screenLock);
         g_globalContext->g_rpcCount += 1;
-        m_numOfRPCs += 1;
-        printf("Socket %d (#%d) <-- %s\n", m_socket, m_numOfRPCs, buffer);
+        localContext->incrementRpcCount();
+        printf("Socket %d (#%d) <-- %s\n", m_socket, localContext->getRpcCount(), buffer);
         pthread_mutex_unlock(g_screenLock);
         pthread_mutex_unlock(g_contextLock);
 
@@ -297,7 +301,7 @@ const
     szBuffer[nlen] = 0;
     send(m_socket, szBuffer, strlen(szBuffer) + 1, 0);
     pthread_mutex_lock(g_screenLock);
-    printf("Socket %d (#%d) --> %s\n", m_socket, m_numOfRPCs, szBuffer);
+    printf("Socket %d (#%d) --> %s\n", m_socket, localContext->getRpcCount(), szBuffer);
     pthread_mutex_unlock(g_screenLock);
 }
 
@@ -315,7 +319,7 @@ void ClientHandler::printServerStats(const GlobalContext *g_globalContext,
     printf("Active connections: %d\n", g_globalContext->g_activeConnection);
     printf("Total # of connections: %d\n", g_globalContext->g_totalConnection);
     printf("Total # of Server handled RPCs: %d\n", g_globalContext->g_rpcCount);
-    printf("Total # of Client instance RPCs: %d\n", m_numOfRPCs);
+    printf("Total # of Client instance RPCs: %d\n", localContext->getRpcCount());
     printf("********************************************************\n\n");
 }
 
