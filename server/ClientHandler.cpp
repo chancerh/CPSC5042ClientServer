@@ -258,6 +258,10 @@ bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t
     {
         result = "0;" + GENERAL_FAIL;
     }
+    catch (runtime_error &e)
+    {
+        result = "0;" + GENERAL_FAIL;
+    }
     catch (exception &e)
     {
         result = "0;" + GENERAL_FAIL;

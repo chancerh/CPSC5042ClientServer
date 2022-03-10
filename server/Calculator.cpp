@@ -287,46 +287,129 @@ string Calculator::summary(const string &inValue)
 
 vector<string> Calculator::expTokenize(string &inExpression)
 {
-   //Create a vector to store the tokens
-   vector<string> tokens = {};
+    //Create a vector to store the tokens
+    vector<string> tokens = {};
 
-   string temp = ""; //temporary string for storage
+    string temp = ""; //temporary string for storage
+    int bracketRefCount = 0;
 
-   //Loop through input string and populate the vector
-   for(char c : inExpression)
-   {
-      //If char is a space, then do nothing
-      if( c == ' ')
-         continue;
+    //Loop through input string and populate the vector
+    for(char c : inExpression)
+    {
+        //If char is a space, then do nothing
+        if( c == ' ')
+            continue;
 
-      //if char is an operator
-      else if (precedenceMap.find(string(1, c)) != precedenceMap.end())
-      {
-         //if temp storage had a number in it
-         if(temp != "")
+        //if char is an open bracket, flush temp and add multiply
+        else if (c == '(')
+        {
+            bracketRefCount++;
+            if (!temp.empty())
+            {
+                tokens.push_back(temp);
+                temp.clear();
+                tokens.push_back("*");
+            }
+            else if (!tokens.empty() && tokens.back() == ")")
+            {
+                tokens.push_back("*");
+            }
 
-            //add the number to the vector first
-            tokens.push_back(temp);
+          tokens.push_back(string(1, c));
+        }
 
-         //reset temp storage
-         temp = "";
+        //if char is an operator and not a negative/minus sign
+        else if (precedenceMap.find(string(1, c)) != precedenceMap.end() &&
+                    c != '-')
+        {
+            //Throw an exception if we do have b2b operators (invalid expression)
+            if(!tokens.empty() &&
+                !isdigit(tokens.back()[tokens.back().length()- 1]) &&
+                (tokens.back() != ")") &&
+                temp.empty())
+            {
+                throw invalid_argument(INVALID_EXPRESSION);
+            }
+            //Throw an exception if the first char in expression is an operator
+            else if (tokens.empty() && temp.empty())
+            {
+                throw invalid_argument(INVALID_EXPRESSION);
+            }
 
-         //add operator to the vector
-         tokens.push_back(string(1, c));
-      }
+            //if temp storage had a number in it
+            if(!temp.empty())
+                //add the number to the vector first
+                tokens.push_back(temp);
 
-      //else if the char is a number, add to the temp storage (until a
-      // delimiter is reach)
-      else
-         temp += c;
-   }
+            //reset temp storage
+            temp.clear();
 
-   //add the last number to the stack
-   if(temp != "")
-      tokens.push_back(temp);
+            if (c == ')' && bracketRefCount <= 0)
+            {
+                continue;
+            }
+            else if (c == ')' && bracketRefCount > 0)
+            {
+                bracketRefCount --;
+            }
 
-   //return the tokens vector
-   return tokens;
+            //add operator to the vector
+            tokens.push_back(string(1, c));
+
+
+        }
+
+        //if char is a negative/minus sign
+        else if (c == '-')
+        {
+            // if previous token is a number or a closing bracket or previous
+            // character is a number, then treat as a minus sign
+            if (!temp.empty() ||
+                (!tokens.empty() &&
+                    (isdigit((tokens.back()[tokens.back().length()-1])) ||
+                    tokens.back()[tokens.back().length() - 1] == ')')))
+            {
+                //if temp storage has a number in it
+                if(!temp.empty())
+                {
+                    //add the number to the vector first
+                    tokens.push_back(temp);
+                }
+                //reset temp storage
+                temp.clear();
+
+                //add operator to the vector
+                tokens.push_back(string(1, c));
+            }
+
+            //else treat as a negative sign
+            else
+            {
+                temp += c;
+            }
+        }
+
+        //else if the char is a number, add to the temp storage (until a
+        // delimiter is reach)
+        else
+            temp += c;
+    }
+
+    //add the last number to the stack
+    if(!temp.empty())
+    {
+        if (!tokens.empty() && tokens.back() == ")")
+            tokens.push_back("*");
+        tokens.push_back(temp);
+    }
+
+    for (bracketRefCount; bracketRefCount > 0; bracketRefCount--)
+    {
+        tokens.push_back(string(1, ')'));
+    }
+
+    //return the tokens vector
+    return tokens;
 }
 
 vector<string> Calculator::convertToRPN(vector<string>& expTokens)
@@ -353,12 +436,14 @@ vector<string> Calculator::convertToRPN(vector<string>& expTokens)
       {
          //while the temp stack has tokens, push them in reverse order into
          // rpnStack
-         while(temp.back() != "(")
+         while(!temp.empty() && temp.back() != "(")
          {
             rpnStack.push_back(temp.back());
             temp.pop_back();
          }
-         temp.pop_back();
+
+         if (!temp.empty())
+            temp.pop_back();
       }
 
       //if token is an operator
@@ -386,6 +471,11 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
 {
    //Create a vector to store the operands
    vector<double> operandStack = {};
+
+   if (rpnStack.size() < 3)
+   {
+       throw invalid_argument(INVALID_EXPRESSION);
+   }
 
    //Loop through each token and perform necessary calculations
    for(string token : rpnStack)

@@ -8,11 +8,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
-#include <iterator>
 #include <iostream>
 #include <cstring>
-#include <termio.h>
 #include <pthread.h>
+#include <ctime>
 
 
 using namespace std;
@@ -120,7 +119,7 @@ int main(int argc, char const* argv[])
         pthread_join(testThreads[i], nullptr);
     }
 
-    sleep(3);
+    //sleep(3);
 
 
     return 0;
@@ -148,6 +147,7 @@ void* threadExecution(void* inHostAddr)
             calcStatsRPC,
             convRPC;
     vector<string> arrayTokens;
+    srand(time(nullptr));
 
 
    bConnect = ConnectToServer(serverAddress, port, sock);
@@ -180,7 +180,7 @@ void* threadExecution(void* inHostAddr)
         readBuffer(sock, buffer);
         ParseTokens(buffer, arrayTokens);
 
-        //check if successfully connected
+        //check if successfully connected and authenticated
         if (arrayTokens[0] != SUCCESS)
         {
             return nullptr;
@@ -196,12 +196,13 @@ void* threadExecution(void* inHostAddr)
 
         //Create message to be sent
         calcExpRPC = CALC_EXPR + ";";
-        calcExpRPC = calcExpRPC + to_string(rand() % 1000) + "/" +
-                                  to_string(rand() % 1000) + " - " +
-                                  to_string(rand() % 1000) + " +" +
-                                  to_string(rand() % 1000) + " ^ " + "2" + " +" +
-                                  to_string(rand() % 1000) + "*" +
-                                  to_string(rand() % 1000) + ";";
+        calcExpRPC = calcExpRPC + to_string(rand() % 1000 - 500) + "/" +
+                                  to_string(rand() % 1000 - 500) + " - " +
+                                  to_string(rand() % 1000 - 500) + " +" +
+                                  to_string(rand() % 1000 - 500) + " ^ " +
+                                  to_string(rand() % 4) + " +" +
+                                  to_string(rand() % 1000 - 500) + "*" +
+                                  to_string(rand() % 1000 - 500) + ";";
 
         //send buffer
         strcpy(buffer, &calcExpRPC[0]);
