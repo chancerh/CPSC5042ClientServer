@@ -4,23 +4,23 @@ using namespace std;
 
 string Calculator::calculateExpression(string inExpr)
 {
-   //Validate input expression (i.e. containing valid characters)
-   if (validateInputString(inExpr, EXP_CHAR))
-   {
+    //Validate input expression (i.e. containing valid characters)
+    if (validateInputString(inExpr, EXP_CHAR))
+    {
 
-      //Parse input expression into tokens using spaces and operators as delimiters
-      vector<string> expTokens = expTokenize(inExpr);
+        //Parse input expression into tokens using spaces and operators as delimiters
+        vector<string> expTokens = expTokenize(inExpr);
 
-      //Convert the tokens into RPN notation
-      expTokens = convertToRPN(expTokens);
+        //Convert the tokens into RPN notation
+        expTokens = convertToRPN(expTokens);
 
-      //Calculate and return the expression
-      return to_string(calculateRPN(expTokens));
-   }
-   else
-   {
-      throw invalid_argument(INVALID_EXPRESSION);
-   }
+        //Calculate and return the expression
+        return to_string(calculateRPN(expTokens));
+    }
+    else
+    {
+        throw invalid_argument(INVALID_EXPRESSION);
+    }
 }
 
 string Calculator::convertor(const string& choice, string inValue)
@@ -101,16 +101,16 @@ string Calculator::convertor(const string& choice, string inValue)
     return result;
 }
 
-float Calculator::mean(vector<float> vec) 
+float Calculator::mean(vector<float> vec)
 {
     // Check that vector is not empty
     if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");
-  
+
     float elementSum = 0.0; // this will store the sum of elements
 
     // Sum the elements of the vector
-    for (float elm : vec) 
+    for (float elm : vec)
         elementSum += elm;
 
     // calculate the mean and return
@@ -124,7 +124,7 @@ float Calculator::median(vector<float> vec)
 {
     // Check that vector is not empty
     if (vec.empty())
-        throw invalid_argument("Dataset in vec must have size > 0.");   
+        throw invalid_argument("Dataset in vec must have size > 0.");
 
     // Then median is the .5 quantile
     return quantiles(vec, .5)[0];
@@ -138,9 +138,9 @@ float Calculator::percentile(vector<float> vec, float nth) {
 
     // Check to see if the vector is sorted - if not, sort it. 
     if (!is_sorted(vec.begin(), vec.end()))
-	sort(vec.begin(), vec.end());
-	
-    
+        sort(vec.begin(), vec.end());
+
+
     // Get the index of the quantile. There may be two if n is even, so 
     float index = (vec.size() - 1) * nth;
 
@@ -156,7 +156,7 @@ float Calculator::percentile(vector<float> vec, float nth) {
 vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
 {
     float initQuantCut = quantCut;
-    
+
     // Check that vector is not empty
     if (vec.empty())
         throw invalid_argument("Dataset in vec must have size > 0.");
@@ -166,15 +166,15 @@ vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
     // Sort the vector if it isn't already
     // Check to see if the vector is sorted - if not, sort it. 
     if (!is_sorted(vec.begin(), vec.end()))
-	sort(vec.begin(), vec.end());
+        sort(vec.begin(), vec.end());
 
-    
+
     while (quantCut < 1.0) {
         if ((quantCut > 1.0) | (quantCut < 0.0))
             throw invalid_argument("Quantile cuts must be between 0.0 and 1.0");
 
 
-	quants.push_back(percentile(vec, quantCut));
+        quants.push_back(percentile(vec, quantCut));
         quantCut += initQuantCut;
     }
 
@@ -193,7 +193,7 @@ float Calculator::var(const vector<float> &vec)
     // This will hold the accumulated numerator calculations
     float variance = 0.0;
     // Use a for loop for the sums
-    for (auto elm : vec) 
+    for (auto elm : vec)
     {
         variance += pow((elm - vecMean), 2);
     }
@@ -245,16 +245,16 @@ string Calculator::summary(const string &inValue)
     // Check that vector is not empty
     if (vec.empty())
         throw invalid_argument(INVALID_ARG);
-    
+
     // This will hold the results of the calculations and be returned
     vector<float> summaryOut;
-    
+
     auto min = *min_element(vec.begin(), vec.end());
     auto max = *max_element(vec.begin(), vec.end());
     auto quartiles = quantiles(vec, .25);
     auto avg = mean(vec);
     auto med = median(vec);
-     
+
     summaryOut.push_back(min);
     summaryOut.push_back(quartiles[0]);
     summaryOut.push_back(quartiles[1]);
@@ -270,17 +270,17 @@ string Calculator::summary(const string &inValue)
     }
 
 
-        resultString = to_string(summaryOut[0]) + ";" +
-                        to_string(summaryOut[1]) + ";" +
-                        to_string(summaryOut[2]) + ";" +
-                        to_string(summaryOut[3]) + ";" +
-                        to_string(summaryOut[4]) + ";" +
-                        to_string(summaryOut[5]);
+    resultString = to_string(summaryOut[0]) + ";" +
+                   to_string(summaryOut[1]) + ";" +
+                   to_string(summaryOut[2]) + ";" +
+                   to_string(summaryOut[3]) + ";" +
+                   to_string(summaryOut[4]) + ";" +
+                   to_string(summaryOut[5]);
 
     if (vec.size() > 1)
     {
         resultString = resultString + + ";" + to_string(summaryOut[6]) + ";" +
-                                                to_string(summaryOut[7]);
+                       to_string(summaryOut[7]);
     }
     return resultString;
 }
@@ -292,7 +292,6 @@ vector<string> Calculator::expTokenize(string &inExpression)
 
     string temp = ""; //temporary string for storage
     int bracketRefCount = 0;
-    int operatorRefCount = 0;
 
     //Loop through input string and populate the vector
     for(char c : inExpression)
@@ -301,7 +300,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
         if( c == ' ')
             continue;
 
-        //if char is an open bracket, flush temp and add multiply
+            //if char is an open bracket, flush temp and add multiply
         else if (c == '(')
         {
             bracketRefCount++;
@@ -316,22 +315,22 @@ vector<string> Calculator::expTokenize(string &inExpression)
                 tokens.push_back("*");
             }
 
-          tokens.push_back(string(1, c));
+            tokens.push_back(string(1, c));
         }
 
-        //if char is an operator and not a negative/minus sign
+            //if char is an operator and not a negative/minus sign
         else if (precedenceMap.find(string(1, c)) != precedenceMap.end() &&
-                    c != '-')
+                 c != '-')
         {
             //Throw an exception if we do have b2b operators (invalid expression)
             if(!tokens.empty() &&
-                !isdigit(tokens.back()[tokens.back().length()- 1]) &&
-                (tokens.back() != ")") &&
-                    (temp.empty() || temp == "-"))
+               !isdigit(tokens.back()[tokens.back().length()- 1]) &&
+               (tokens.back() != ")") &&
+               temp.empty())
             {
                 throw invalid_argument(INVALID_EXPRESSION);
             }
-            //Throw an exception if the first char in expression is an operator
+                //Throw an exception if the first char in expression is an operator
             else if (tokens.empty() && temp.empty())
             {
                 throw invalid_argument(INVALID_EXPRESSION);
@@ -360,22 +359,15 @@ vector<string> Calculator::expTokenize(string &inExpression)
 
         }
 
-        //if char is a negative/minus sign
+            //if char is a negative/minus sign
         else if (c == '-')
         {
-            //if multiple back to back operators, throw an exception
-            if (!tokens.empty() &&
-                !isdigit(tokens.back()[tokens.back().length() - 1]) &&
-                temp == "-")
-            {
-                throw invalid_argument(INVALID_EXPRESSION);
-            }
             // if previous token is a number or a closing bracket or previous
             // character is a number, then treat as a minus sign
-            if ((!temp.empty() && isdigit(temp[temp.length() - 1]))||
+            if (!temp.empty() ||
                 (!tokens.empty() &&
-                    (isdigit((tokens.back()[tokens.back().length()-1])) ||
-                    tokens.back()[tokens.back().length() - 1] == ')')))
+                 (isdigit((tokens.back()[tokens.back().length()-1])) ||
+                  tokens.back()[tokens.back().length() - 1] == ')')))
             {
                 //if temp storage has a number in it
                 if(!temp.empty())
@@ -390,15 +382,15 @@ vector<string> Calculator::expTokenize(string &inExpression)
                 tokens.push_back(string(1, c));
             }
 
-            //else treat as a negative sign
+                //else treat as a negative sign
             else
             {
                 temp += c;
             }
         }
 
-        //else if the char is a number, add to the temp storage (until a
-        // delimiter is reach)
+            //else if the char is a number, add to the temp storage (until a
+            // delimiter is reach)
         else
             temp += c;
     }
@@ -422,116 +414,116 @@ vector<string> Calculator::expTokenize(string &inExpression)
 
 vector<string> Calculator::convertToRPN(vector<string>& expTokens)
 {
-   //Create a vector to store the result
-   vector<string> rpnStack = {};
+    //Create a vector to store the result
+    vector<string> rpnStack = {};
 
-   //Create a temp storage for operations within parenthesis
-   vector<string> temp = {"("};
-   expTokens.push_back(")");
-   for(string token : expTokens)
-   {
-      //if the token is a number, add it to the rpnStack
-      if(precedenceMap.find(token) == precedenceMap.end()) // oparand
-         rpnStack.push_back(token);
+    //Create a temp storage for operations within parenthesis
+    vector<string> temp = {"("};
+    expTokens.push_back(")");
+    for(string token : expTokens)
+    {
+        //if the token is a number, add it to the rpnStack
+        if(precedenceMap.find(token) == precedenceMap.end()) // oparand
+            rpnStack.push_back(token);
 
-      //if token is an opening parenthesis, add it to the temp stack
-      else if( token == "(")
-         temp.push_back(token);
+            //if token is an opening parenthesis, add it to the temp stack
+        else if( token == "(")
+            temp.push_back(token);
 
-      //if token is a closing parenthesis, then process the temp stack and
-      // add its contents to the rpn stack
-      else if (token == ")")
-      {
-         //while the temp stack has tokens, push them in reverse order into
-         // rpnStack
-         while(!temp.empty() && temp.back() != "(")
-         {
-            rpnStack.push_back(temp.back());
-            temp.pop_back();
-         }
+            //if token is a closing parenthesis, then process the temp stack and
+            // add its contents to the rpn stack
+        else if (token == ")")
+        {
+            //while the temp stack has tokens, push them in reverse order into
+            // rpnStack
+            while(!temp.empty() && temp.back() != "(")
+            {
+                rpnStack.push_back(temp.back());
+                temp.pop_back();
+            }
 
-         if (!temp.empty())
-            temp.pop_back();
-      }
+            if (!temp.empty())
+                temp.pop_back();
+        }
 
-      //if token is an operator
-      else
-      {
-         //while temp vector is not empty and the token has higher precedence
-         // than this token, add the temp token to the stack
-         while(!temp.empty() &&
-               precedenceMap[token] <= precedenceMap[temp.back()])
-         {
-            rpnStack.push_back(temp.back());
-            temp.pop_back();
-         }
+            //if token is an operator
+        else
+        {
+            //while temp vector is not empty and the token has higher precedence
+            // than this token, add the temp token to the stack
+            while(!temp.empty() &&
+                  precedenceMap[token] <= precedenceMap[temp.back()])
+            {
+                rpnStack.push_back(temp.back());
+                temp.pop_back();
+            }
 
-         //add operator to the temp stack
-         temp.push_back(token);
-      }
-   }
+            //add operator to the temp stack
+            temp.push_back(token);
+        }
+    }
 
-   //return the rpn stack
-   return rpnStack;
+    //return the rpn stack
+    return rpnStack;
 }
 
 double Calculator::calculateRPN(vector<string>& rpnStack)
 {
-   //Create a vector to store the operands
-   vector<double> operandStack = {};
+    //Create a vector to store the operands
+    vector<double> operandStack = {};
 
-   if (rpnStack.size() < 3)
-   {
-       throw invalid_argument(INVALID_EXPRESSION);
-   }
+    if (rpnStack.size() < 3)
+    {
+        throw invalid_argument(INVALID_EXPRESSION);
+    }
 
-   //Loop through each token and perform necessary calculations
-   for(string token : rpnStack)
-   {
-      //if token is an operator, perform the calculation
-      if(precedenceMap.find(token) != precedenceMap.end())
-      {
-         //get the operands
-         double operand1 = operandStack[operandStack.size() - 1];
-         double operand2 = operandStack[operandStack.size() - 2];
+    //Loop through each token and perform necessary calculations
+    for(string token : rpnStack)
+    {
+        //if token is an operator, perform the calculation
+        if(precedenceMap.find(token) != precedenceMap.end())
+        {
+            //get the operands
+            double operand1 = operandStack[operandStack.size() - 1];
+            double operand2 = operandStack[operandStack.size() - 2];
 
-         //perform the calculation
-         switch(token[0])
-         {
-            case '^':
-               operand2 = pow(operand2, operand1);
-               break;
-            case '+':
-               operand2 = operand2 + operand1;
-               break;
-            case '-':
-               operand2 = operand2 - operand1;
-               break;
-            case '*':
-               operand2 = operand2 * operand1;
-               break;
-            case '/':
-               operand2 = operand2 / operand1;
-               break;
-            default:
-               throw invalid_argument(INVALID_OPERATOR);
-         }
+            //perform the calculation
+            switch(token[0])
+            {
+                case '^':
+                    operand2 = pow(operand2, operand1);
+                    break;
+                case '+':
+                    operand2 = operand2 + operand1;
+                    break;
+                case '-':
+                    operand2 = operand2 - operand1;
+                    break;
+                case '*':
+                    operand2 = operand2 * operand1;
+                    break;
+                case '/':
+                    operand2 = operand2 / operand1;
+                    break;
+                default:
+                    throw invalid_argument(INVALID_OPERATOR);
+            }
 
-         //remove the operands from the stack, and add result to the stack
-         operandStack.pop_back();
-         operandStack.pop_back();
-         operandStack.push_back(operand2);
-      }
+            //remove the operands from the stack, and add result to the stack
+            operandStack.pop_back();
+            operandStack.pop_back();
+            operandStack.push_back(operand2);
+        }
 
-      //if token is a number, add to the operand stack
-      else
-      {
-         operandStack.push_back(atof(token.c_str()));
-      }
-   }
+            //if token is a number, add to the operand stack
+        else
+        {
+            operandStack.push_back(atof(token.c_str()));
+        }
+    }
 
-   //return the result
-   return operandStack[0];
+    //return the result
+    return operandStack[0];
 }
 
 string Calculator::binToHex(string &input)
@@ -733,7 +725,3 @@ bool Calculator::validateInputString(const string &inExpression,
     //if all characters passed test, return true
     return true;
 }
-
-
-
-
