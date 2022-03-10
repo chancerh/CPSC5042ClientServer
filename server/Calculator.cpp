@@ -292,6 +292,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
 
     string temp = ""; //temporary string for storage
     int bracketRefCount = 0;
+    int operatorRefCount = 0;
 
     //Loop through input string and populate the vector
     for(char c : inExpression)
@@ -326,7 +327,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
             if(!tokens.empty() &&
                 !isdigit(tokens.back()[tokens.back().length()- 1]) &&
                 (tokens.back() != ")") &&
-                temp.empty())
+                    (temp.empty() || temp == "-"))
             {
                 throw invalid_argument(INVALID_EXPRESSION);
             }
@@ -362,9 +363,16 @@ vector<string> Calculator::expTokenize(string &inExpression)
         //if char is a negative/minus sign
         else if (c == '-')
         {
+            //if multiple back to back operators, throw an exception
+            if (!tokens.empty() &&
+                !isdigit(tokens.back()[tokens.back().length() - 1]) &&
+                temp == "-")
+            {
+                throw invalid_argument(INVALID_EXPRESSION);
+            }
             // if previous token is a number or a closing bracket or previous
             // character is a number, then treat as a minus sign
-            if (!temp.empty() ||
+            if ((!temp.empty() && isdigit(temp[temp.length() - 1]))||
                 (!tokens.empty() &&
                     (isdigit((tokens.back()[tokens.back().length()-1])) ||
                     tokens.back()[tokens.back().length() - 1] == ')')))
