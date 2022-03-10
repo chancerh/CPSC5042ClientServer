@@ -398,7 +398,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
     //add the last number to the stack
     if(!temp.empty())
     {
-        if (tokens.back() == ")")
+        if (!tokens.empty() && tokens.back() == ")")
             tokens.push_back("*");
         tokens.push_back(temp);
     }
@@ -471,6 +471,11 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
 {
    //Create a vector to store the operands
    vector<double> operandStack = {};
+
+   if (rpnStack.size() < 3)
+   {
+       throw invalid_argument(INVALID_EXPRESSION);
+   }
 
    //Loop through each token and perform necessary calculations
    for(string token : rpnStack)
