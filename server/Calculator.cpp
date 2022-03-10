@@ -369,15 +369,11 @@ vector<string> Calculator::expTokenize(string &inExpression)
                     (isdigit((tokens.back()[tokens.back().length()-1])) ||
                     tokens.back()[tokens.back().length() - 1] == ')')))
             {
-                //if temp storage had a number in it
-                if(!temp.empty() && isdigit(temp[temp.length() -1]))
+                //if temp storage has a number in it
+                if(!temp.empty())
                 {
                     //add the number to the vector first
                     tokens.push_back(temp);
-                }
-                else
-                {
-                    throw invalid_argument(INVALID_EXPRESSION);
                 }
                 //reset temp storage
                 temp.clear();
