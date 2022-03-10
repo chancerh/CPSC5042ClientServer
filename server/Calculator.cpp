@@ -484,6 +484,10 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
         if(precedenceMap.find(token) != precedenceMap.end())
         {
             //get the operands
+            if(operandStack.size() < 2)
+            {
+                throw invalid_argument(INVALID_EXPRESSION);
+            }
             double operand1 = operandStack[operandStack.size() - 1];
             double operand2 = operandStack[operandStack.size() - 2];
 

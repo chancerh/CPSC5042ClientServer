@@ -266,6 +266,10 @@ bool ClientHandler::ProcessCal(vector<std::string> &arrayTokens, pthread_mutex_t
     {
         result = "0;" + GENERAL_FAIL;
     }
+    catch (...)
+    {
+        result = "0;" + GENERAL_FAIL;
+    }
 
     //Copy result to buffer and send buffer to client
     strcpy(szBuffer, result.c_str());
