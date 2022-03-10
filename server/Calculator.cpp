@@ -370,13 +370,17 @@ vector<string> Calculator::expTokenize(string &inExpression)
                     tokens.back()[tokens.back().length() - 1] == ')')))
             {
                 //if temp storage had a number in it
-                if(temp != "")
+                if(!temp.empty() && isdigit(temp[temp.length() -1]))
                 {
                     //add the number to the vector first
                     tokens.push_back(temp);
                 }
+                else
+                {
+                    throw invalid_argument(INVALID_EXPRESSION);
+                }
                 //reset temp storage
-                temp = "";
+                temp.clear();
 
                 //add operator to the vector
                 tokens.push_back(string(1, c));
