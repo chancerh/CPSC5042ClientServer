@@ -16,7 +16,7 @@ clientTestDriver : client/ClientTestDriver.cpp
 
 # Link the compiled main and RPCServe code to create the server executable
 # Start with class names
-SERVER_CLASSES = RPCServer Calculator ClientHandler Authenticator
+SERVER_CLASSES = RPCServer Calculator ClientHandler Authenticator LocalContext
 
 # Create server/*.h variable
 SERVER_H = $(addsuffix .h, $(addprefix server/, $(SERVER_CLASSES)))
