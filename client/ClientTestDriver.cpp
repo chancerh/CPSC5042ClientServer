@@ -180,7 +180,6 @@ void* threadExecution(void* inHostAddr)
 {
     //initialize data
     int sock = 0;
-    struct sockaddr_in serv_addr;
 
     //Constants for creating buffers
     const string CONNECT = "connect",

@@ -207,7 +207,7 @@ int main(int argc, char const* argv[])
 
 bool validateInteger(string input)
 {
-    for(int i = 0; i < input.size(); i++){
+    for(unsigned long i = 0; i < input.size(); i++){
         //check if string input contain int
         if(!isdigit(input[i])){
             return false;
@@ -251,7 +251,7 @@ void userInterface()
         do{
             cout << "Enter selection: ";
             getline(cin, userInput);
-        }while(!validateInteger(userInput));
+        }while(userInput.empty() || !validateInteger(userInput));
 
         //Takes user's choice and perform desired calculation
         switch(stoi(userInput))
@@ -373,7 +373,7 @@ void processConversion() {
         do{
             cout << "\nEnter Selection: ";
             getline(cin, choice);
-        }while(!validateInteger(choice));
+        }while(choice.empty() || !validateInteger(choice));
 
         //Direct user's choice and call conversion methods
         switch(stoi(choice)){
