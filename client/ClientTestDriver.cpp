@@ -12,6 +12,7 @@
 #include <cstring>
 #include <pthread.h>
 #include <ctime>
+#include "semaphore.h"
 
 
 using namespace std;
@@ -24,6 +25,7 @@ struct hostAddr {
 const int BUFFER_SIZE = 1024;
 
 pthread_mutex_t g_screenLock;
+sem_t fullQueue;
 
 /******************************************************************************/
 /**************************** Function Prototypes *****************************/
@@ -86,7 +88,7 @@ int main(int argc, char const* argv[])
 
     //Init variables
     const int NUM_THREADS = stoi (argv[3]);
-    pthread_t testThreads[NUM_THREADS];
+    //pthread_t testThreads[NUM_THREADS];
     struct hostAddr myHostAddr;
     myHostAddr.ipAddr = argv[1];
     myHostAddr.port = argv[2];
@@ -97,27 +99,43 @@ int main(int argc, char const* argv[])
         printf("ERROR: Failed to init mutex. Exiting program.\n");
         return -1;
     }
+    int sem_Val = 75;
+    sem_init(&fullQueue, 0, sem_Val);
+    sem_getvalue(&fullQueue, &sem_Val);
+    printf("%d\n", sem_Val);
+
 
     //Create Threads
     for (int i = 0; i < NUM_THREADS; i++)
     {
-        pthread_create(&testThreads[i],
+        sem_wait(&fullQueue);
+        int test;
+        sem_getvalue(&fullQueue, &test);
+        printf("%d\n", test);
+        pthread_t* testThread = new pthread_t();
+        pthread_create(testThread,
                        nullptr,
                        threadExecution,
                        (void *)&myHostAddr);
-//        pthread_detach(testThreads[i]);
+        pthread_detach(*testThread);
 
         usleep(5000);
     }
 
-    //sleep(10);
 
+
+    do
+    {
+        usleep(100000);
+        sem_getvalue(&fullQueue, &sem_Val);
+    }
+    while (sem_Val < 75);
 
     //Wait for threads to join after completion
-    for (int i = 0; i < NUM_THREADS; i++)
-    {
-        pthread_join(testThreads[i], nullptr);
-    }
+//    for (int i = 0; i < NUM_THREADS; i++)
+//    {
+//        pthread_join(testThreads[i], nullptr);
+//    }
 
     //sleep(3);
 
@@ -187,76 +205,79 @@ void* threadExecution(void* inHostAddr)
         }
 
         //Sleep
-        usleep(1000000);
+        usleep(100000 + rand() % 100000);
 
-        //Use Calculate Expression
+        for (int i = 0; i < 6; i++)
+        {
+            //Use Calculate Expression
 
-        //Clear buffers
-        bzero(buffer, BUFFER_SIZE);
+            //Clear buffers
+            bzero(buffer, BUFFER_SIZE);
 
-        //Create message to be sent
-        calcExpRPC = CALC_EXPR + ";";
-        calcExpRPC = calcExpRPC + to_string(rand() % 1000 - 500) + "/" +
-                                  to_string(rand() % 1000 - 500) + " - " +
-                                  to_string(rand() % 1000 - 500) + " +" +
-                                  to_string(rand() % 1000 - 500) + " ^ " +
-                                  to_string(rand() % 4) + " +" +
-                                  to_string(rand() % 1000 - 500) + "*" +
-                                  to_string(rand() % 1000 - 500) + ";";
+            //Create message to be sent
+            calcExpRPC = CALC_EXPR + ";";
+            calcExpRPC = calcExpRPC + to_string(rand() % 1000 - 500) + "/" +
+                         to_string(rand() % 1000 - 500) + " - " +
+                         to_string(rand() % 1000 - 500) + " +" +
+                         to_string(rand() % 1000 - 500) + " ^ " +
+                         to_string(rand() % 4) + " +" +
+                         to_string(rand() % 1000 - 500) + "*" +
+                         to_string(rand() % 1000 - 500) + ";";
 
-        //send buffer
-        strcpy(buffer, &calcExpRPC[0]);
-        sendBuffer(sock, buffer);
+            //send buffer
+            strcpy(buffer, &calcExpRPC[0]);
+            sendBuffer(sock, buffer);
 
-        //read response
-        readBuffer(sock, buffer);
+            //read response
+            readBuffer(sock, buffer);
 
-        //Sleep
-        usleep(10000);
+            //Sleep
+            usleep(10000 + rand() % 5000);
 
-        //Use Stats RPC
 
-        //Clear buffers
-        bzero(buffer, BUFFER_SIZE);
-        arrayTokens.clear();
+            //Use Stats RPC
 
-        //Create message to be sent
-        calcStatsRPC = CALC_STAT + ";";
-        calcStatsRPC = calcStatsRPC + to_string(rand() % 1000) + " " +
-                        to_string(rand() % 1000) + " " +
-                        to_string(rand() % 1000) + " " +
-                        to_string(rand() % 1000) + " " +
-                        to_string(rand() % 1000) + ";" ;
+            //Clear buffers
+            bzero(buffer, BUFFER_SIZE);
+            arrayTokens.clear();
 
-        //send buffer
-        strcpy(buffer, &calcStatsRPC[0]);
-        sendBuffer(sock, buffer);
+            //Create message to be sent
+            calcStatsRPC = CALC_STAT + ";";
+            calcStatsRPC = calcStatsRPC + to_string(rand() % 1000) + " " +
+                           to_string(rand() % 1000) + " " +
+                           to_string(rand() % 1000) + " " +
+                           to_string(rand() % 1000) + " " +
+                           to_string(rand() % 1000) + ";";
 
-        //read response
-        readBuffer(sock, buffer);
+            //send buffer
+            strcpy(buffer, &calcStatsRPC[0]);
+            sendBuffer(sock, buffer);
 
-        //Sleep
-        usleep(10000);
+            //read response
+            readBuffer(sock, buffer);
 
-        //Use Conversion RPC
+            //Sleep
+            usleep(10000 + rand() % 7000);
 
-        //Clear buffers
-        bzero(buffer, BUFFER_SIZE);
+            //Use Conversion RPC
 
-        //Create message to be sent
-        convRPC = CALC_CONV + ";";
-        convRPC = convRPC + "5;" + to_string(rand() % 1000) + ";";
+            //Clear buffers
+            bzero(buffer, BUFFER_SIZE);
 
-        //send buffer
-        strcpy(buffer, &convRPC[0]);
-        sendBuffer(sock, buffer);
+            //Create message to be sent
+            convRPC = CALC_CONV + ";";
+            convRPC = convRPC + "5;" + to_string(rand() % 1000) + ";";
 
-        //read response
-        readBuffer(sock, buffer);
+            //send buffer
+            strcpy(buffer, &convRPC[0]);
+            sendBuffer(sock, buffer);
 
-        //Sleep
-        usleep(10000);
+            //read response
+            readBuffer(sock, buffer);
 
+            //Sleep
+            usleep(10000 + rand() % 2000);
+        }
         //Use Disconnect RPC
 
         //Clear buffers
@@ -281,6 +302,11 @@ void* threadExecution(void* inHostAddr)
         printf("Exit without calling RPC");
         pthread_mutex_lock(&g_screenLock);
     }
+
+    sem_post(&fullQueue);
+    int test;
+    sem_getvalue(&fullQueue, &test);
+    printf("%d\n", test);
     return nullptr;
 }
 
