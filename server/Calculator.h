@@ -1,3 +1,8 @@
+//Author  : Group#2
+//Date    : 03/12/2022
+//Version : 2.0
+//Filename: Calculator.h
+
 #ifndef CPSC5042CLIENTSERVER_CALCULATOR_H
 #define CPSC5042CLIENTSERVER_CALCULATOR_H
 
@@ -123,25 +128,59 @@ private:
      */
     string decToHex(string &input);
 
+
     //*************************************
     // Stats functions
     //*************************************
-    // Calculate the mean of a set of numbers
-    float mean(vector<float>);
 
-    // Calculate the median of a set of numbers
-    float median(vector<float>);
+    /**
+     * Calculate the mean of a set of real numbers
+     * @param vec a vector of numbers
+     * @return the arithmetic mean of the numbers passed as vec
+     */
+    float mean(const vector<float> &vec);
 
-    // Calculate the sample variance (meaning it uses n-1 in the denominator)
+    /**
+     * Calculate the sample variance of a set of real numbers. Because this
+     * is the sample variance, if there are n numbers in the set, this
+     * function calculates variance with n-1 in the denominator. Thus n must
+     * be greater than 1.
+     * @param vec a vector of floats, must be of size > 1
+     * @return the sample variance
+     */
     float var(const vector<float> &vec);
 
-    // calculate the sample standard deviation (meaning it uses n-1 in the denomicator).
-    float sd(vector<float>);
+    /**
+     * Calculate the sample variance of a set of real numbers. Because this
+     * is the sample standard deviation, if there are n numbers in the set,
+     * this function calculates variance with n-1 in the denominator. Thus n
+     * must be greater than 1.
+     * @param vec a vector of floats, must be of size > 1
+     * @return the sample standard deviation
+     */
+    float sd(const vector<float> &vec);
 
-    // Caclulate quantiles
-    vector<float> quantiles(vector<float> data, float quantCuts);
 
-    // Calculate the value representing the nth percentile (where 0 <= n <= 1)
+    /**
+     * Calculates the quantiles for a set of real numbers.
+     * @param vec a set of real numbers
+     * @param quantCuts a float between 1.0 and 0.0 to that sets the
+     * quantiles to calculate. For instance, to calculate the quartiles, pass
+     * .25 to this argument. To calculate the quintiles, pass .2. To
+     * calculate the median, pass .5.
+     * @return a vector containing the calculated quintiles.
+     */
+    vector<float> quantiles(vector<float> vec, float quantCuts);
+
+    /**
+     * Calculate the value representing the nth percentile (where 0 <= n <= 1)
+     * This is used to calculate the quantiles in the quantiles function.
+     * Percentil passed to nth is in decimal form (e.g. to calcualte the 25th
+     * percentile pass .25 to nth).
+     * @param vec a set of real numbers
+     * @param nth a float to
+     * @return a float representing the nth percentile.
+     */
     float percentile(vector<float> vec, float nth);
 
 
@@ -175,6 +214,5 @@ private:
                                 '9', ',', '.', '+', '-', '*', '/', '^', '(',
                                 ')', ' '};
 };
-
 //#include "Calculator.cpp"
 #endif //CPSC5042CLIENTSERVER_CALCULATOR_H

@@ -1,5 +1,5 @@
 //Author  : Group#2
-//Date    : 02/07/2022
+//Date    : 03/12/2022
 //Version : 2.0
 //Filename: RPCServer.cpp
 
@@ -16,10 +16,14 @@
 
 using namespace std;
 
-/* GLOBAL VARIABLES
- *
+/**
+ * GLOBAL VARIABLES
  */
-pthread_mutex_t g_contextLock; //Mutex for gloabal context
+
+//Mutex for global context
+pthread_mutex_t g_contextLock;
+
+//Mutex to protect console from printing race conditions
 pthread_mutex_t g_screenLock;
 
 struct GlobalContext g_globalContext;
@@ -44,7 +48,7 @@ RPCServer::RPCServer(const char *serverIP, int port)
     {
         throw new runtime_error(MUTEX_INIT_FAIL);
     }
-};
+}
 
 /**
  * Destructor
@@ -52,7 +56,7 @@ RPCServer::RPCServer(const char *serverIP, int port)
 RPCServer::~RPCServer()
 {
    pthread_mutex_destroy(&g_contextLock);
-};
+}
 
 /**
  * StartServer will create a server on a Port that was passed in, and create a socket
@@ -98,26 +102,27 @@ bool RPCServer::StartServer()
     return true;
 }
 
-/*
+/**
  * A function to execute a thread
  */
-
-
 void* startThread(void* input) {
     //sleep(1);
 
     //Get socket number from input
     auto socket = *(int *) input;
 
-    //Create a new thread handler object
+    //Create a new client handler object to handle incoming RPCs
     ClientHandler *cHandler = new ClientHandler(socket, g_credentials);
 
 
-    //Process incoming RPC
+    //Process incoming RPCs
     try
     {
-        cHandler->ProcessRPC(&g_contextLock, &g_screenLock, &g_globalContext);
+        cHandler->ProcessRPC(&g_contextLock, &g_screenLock,
+                             &g_globalContext);
     }
+
+    //if exception is thrown, print the faulting socket
     catch(exception &e)
     {
         pthread_mutex_lock(&g_screenLock);
@@ -130,17 +135,16 @@ void* startThread(void* input) {
     delete cHandler;
     cHandler = nullptr;
 
-
     return nullptr;
 }
 
 /**
  * Will accept a new connection by listening on its address
+ *
  */
 bool RPCServer::ListenForClient()
 {
     int addrlen = sizeof(m_address);
-
 
     //Listen to client and accept connection. If accept call fails print error
     if ((m_socket = accept(m_server_fd, (struct sockaddr*)&m_address,
@@ -149,18 +153,12 @@ bool RPCServer::ListenForClient()
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    //
     else
     {
-//        printf("Socket: %d: Accepted Connection\n", m_socket);
-//
-//        //create thread object
+        //create thread object
         pthread_t thread_id;
-//        printf("Socket: %d: Launching Thread\n", m_socket);
-
         pthread_create(&thread_id, nullptr, startThread, (void*)&m_socket);
         pthread_detach(thread_id);
-
     }
 
     return true;

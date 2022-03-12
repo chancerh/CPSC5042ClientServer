@@ -1,7 +1,15 @@
 //Author  : Group#2
-//Date    : 02/07/2022
+//Date    : 03/12/2022
 //Version : 2.0
 //Filename: RPCServer.h
+
+
+/**
+ * This is the main object for the server application. The main function
+ * would continuously call the listen function to listen to new client
+ * connections. For every new client connection, this objects starts a new
+ * thread to handle the client incoming RPCs
+ */
 
 #ifndef CPSC5042CLIENTSERVER_RPCSERVER_H
 #define CPSC5042CLIENTSERVER_RPCSERVER_H

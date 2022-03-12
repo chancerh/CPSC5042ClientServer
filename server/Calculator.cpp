@@ -1,7 +1,13 @@
+//Author  : Group#2
+//Date    : 03/12/2022
+//Version : 2.0
+//Filename: Calculator.cpp
+
 #include "Calculator.h"
 
 using namespace std;
 
+//Calculate algebraic expressions
 string Calculator::calculateExpression(string inExpr)
 {
     //Validate input expression (i.e. containing valid characters)
@@ -19,10 +25,12 @@ string Calculator::calculateExpression(string inExpr)
     }
     else
     {
+        //if input is not correct, throw an exception
         throw invalid_argument(INVALID_EXPRESSION);
     }
 }
 
+//Performs conversion between hexadecimal, binary and decimal
 string Calculator::convertor(const string& choice, string inValue)
 {
 
@@ -30,11 +38,19 @@ string Calculator::convertor(const string& choice, string inValue)
     if (choice.empty())
         throw invalid_argument(INVALID_ARG);
 
+    //Declare a string to store results
     string result;
+
+    //Capture the requested conversion format
     int c = stoi(choice) - 1;
-    switch(c){
+    switch(c)
+    {
+        //Convert from Binary to Hex
         case 0:
-            if(validateInputString(inValue, BIN_CHAR)){
+            //Validate input characters
+            if(validateInputString(inValue, BIN_CHAR))
+            {
+                //Perform conversion
                 result = binToDec(inValue);
                 break;
             }
@@ -43,7 +59,10 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 1:
-            if(validateInputString(inValue, DEC_CHAR)){
+            //Validate input characters
+            if(validateInputString(inValue, DEC_CHAR))
+            {
+                //Perform conversion
                 result = decToBin(inValue);
                 break;
             }
@@ -52,7 +71,10 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 2:
-            if(validateInputString(inValue, BIN_CHAR)){
+            //Validate input characters
+            if(validateInputString(inValue, BIN_CHAR))
+            {
+                //Perform conversion
                 result = binToHex(inValue);
                 break;
             }
@@ -61,11 +83,14 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 3:
+            //Validate input characters
             if (inValue.substr(0, 2) == "0x")
             {
                 inValue = inValue.substr(2);
             }
-            if(validateInputString(inValue, HEX_CHAR)){
+            if(validateInputString(inValue, HEX_CHAR))
+            {
+                //Perform conversion
                 result = hexToBin(inValue);
                 break;
             }
@@ -74,7 +99,10 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 4:
-            if(validateInputString(inValue, DEC_CHAR)){
+            //Validate input characters
+            if(validateInputString(inValue, DEC_CHAR))
+            {
+                //Perform conversion
                 result = decToHex(inValue);
                 break;
             }
@@ -83,11 +111,14 @@ string Calculator::convertor(const string& choice, string inValue)
                 throw invalid_argument(INVALID_ARG);
             }
         case 5:
+            //Validate input characters
             if (inValue.substr(0, 2) == "0x")
             {
                 inValue = inValue.substr(2);
             }
-            if(validateInputString(inValue, HEX_CHAR)){
+            if(validateInputString(inValue, HEX_CHAR))
+            {
+                //Perform conversion
                 result = hexToDec(inValue);
                 break;
             }
@@ -98,10 +129,13 @@ string Calculator::convertor(const string& choice, string inValue)
         default:
             throw invalid_argument(INVALID_EXPRESSION);
     }
+
+    //return result
     return result;
 }
 
-float Calculator::mean(vector<float> vec)
+//Calculates the mean/average of a set of numbers
+float Calculator::mean(const vector<float> &vec)
 {
     // Check that vector is not empty
     if (vec.empty())
@@ -120,16 +154,8 @@ float Calculator::mean(vector<float> vec)
 
 }
 
-float Calculator::median(vector<float> vec)
-{
-    // Check that vector is not empty
-    if (vec.empty())
-        throw invalid_argument("Dataset in vec must have size > 0.");
 
-    // Then median is the .5 quantile
-    return quantiles(vec, .5)[0];
-}
-
+//Helper function to calculate percentiles for a set of numbers
 float Calculator::percentile(vector<float> vec, float nth) {
 
     // Check that vector is not empty
@@ -141,10 +167,11 @@ float Calculator::percentile(vector<float> vec, float nth) {
         sort(vec.begin(), vec.end());
 
 
-    // Get the index of the quantile. There may be two if n is even, so 
+    // Get the index of the quantile.
     float index = (vec.size() - 1) * nth;
 
-    // If n is odd, indexLow and indexHigh will be the same
+    // Get the low/high index for the nth percentile (use floor/cieling
+    // for case when n is even
     int indexLow = floor(index);
     int indexHigh = ceil(index);
 
@@ -153,6 +180,7 @@ float Calculator::percentile(vector<float> vec, float nth) {
     return (1-h) * qs + h * vec[indexHigh];
 }
 
+//Calculates percentiles/quantiles
 vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
 {
     float initQuantCut = quantCut;
@@ -168,19 +196,22 @@ vector<float> Calculator::quantiles(vector<float> vec, float quantCut)
     if (!is_sorted(vec.begin(), vec.end()))
         sort(vec.begin(), vec.end());
 
-
+    // Repeatedly call percntile to calulate values at each quanitle cutpoint.
     while (quantCut < 1.0) {
+        // Check to make sure that quantCut is between 0 and 1
         if ((quantCut > 1.0) | (quantCut < 0.0))
             throw invalid_argument("Quantile cuts must be between 0.0 and 1.0");
 
-
+        // calculate percentile, add add resutl to quants vector
         quants.push_back(percentile(vec, quantCut));
+        // Move to the next quantCut
         quantCut += initQuantCut;
     }
 
     return quants;
 }
 
+//Calculates the variance for a set of numbers
 float Calculator::var(const vector<float> &vec)
 {
 
@@ -202,7 +233,9 @@ float Calculator::var(const vector<float> &vec)
     return variance / (vec.size() - 1);
 }
 
-float Calculator::sd(vector<float> vec)
+
+//Calculate the standard deviation for a set of numbers
+float Calculator::sd(const vector<float> &vec)
 {
     // Check that vector is not empty
     if (vec.size() < 2)
@@ -212,6 +245,7 @@ float Calculator::sd(vector<float> vec)
     return sqrt(var(vec));
 }
 
+//Calculates all stats for a set of numbers
 string Calculator::summary(const string &inValue)
 {
     vector<float> vec;
@@ -249,12 +283,13 @@ string Calculator::summary(const string &inValue)
     // This will hold the results of the calculations and be returned
     vector<float> summaryOut;
 
+    //assign the calculated values to variables
     auto min = *min_element(vec.begin(), vec.end());
     auto max = *max_element(vec.begin(), vec.end());
     auto quartiles = quantiles(vec, .25);
     auto avg = mean(vec);
-    auto med = median(vec);
 
+    //Setup the output of the calculated values
     summaryOut.push_back(min);
     summaryOut.push_back(quartiles[0]);
     summaryOut.push_back(quartiles[1]);
@@ -270,6 +305,7 @@ string Calculator::summary(const string &inValue)
     }
 
 
+    //convert output to string format
     resultString = to_string(summaryOut[0]) + ";" +
                    to_string(summaryOut[1]) + ";" +
                    to_string(summaryOut[2]) + ";" +
@@ -277,6 +313,7 @@ string Calculator::summary(const string &inValue)
                    to_string(summaryOut[4]) + ";" +
                    to_string(summaryOut[5]);
 
+    //If more than 1 number exists in the set, get the sd and var
     if (vec.size() > 1)
     {
         resultString = resultString + + ";" + to_string(summaryOut[6]) + ";" +
@@ -285,6 +322,7 @@ string Calculator::summary(const string &inValue)
     return resultString;
 }
 
+//Helper function to calculate expressions (tokenizes input string)
 vector<string> Calculator::expTokenize(string &inExpression)
 {
     //Create a vector to store the tokens
@@ -300,7 +338,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
         if( c == ' ')
             continue;
 
-            //if char is an open bracket, flush temp and add multiply
+        //if char is an open bracket, flush temp and add multiply
         else if (c == '(')
         {
             bracketRefCount++;
@@ -310,6 +348,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
                 temp.clear();
                 tokens.push_back("*");
             }
+            //If char before was a closing bracket, flush temp and add multiply
             else if (!tokens.empty() && tokens.back() == ")")
             {
                 tokens.push_back("*");
@@ -318,7 +357,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
             tokens.push_back(string(1, c));
         }
 
-            //if char is an operator and not a negative/minus sign
+        //if char is an operator and not a negative/minus sign
         else if (precedenceMap.find(string(1, c)) != precedenceMap.end() &&
                  c != '-')
         {
@@ -330,7 +369,8 @@ vector<string> Calculator::expTokenize(string &inExpression)
             {
                 throw invalid_argument(INVALID_EXPRESSION);
             }
-                //Throw an exception if the first char in expression is an operator
+
+            //Throw an exception if the first char in expression is an operator
             else if (tokens.empty() && temp.empty())
             {
                 throw invalid_argument(INVALID_EXPRESSION);
@@ -344,9 +384,10 @@ vector<string> Calculator::expTokenize(string &inExpression)
             //reset temp storage
             temp.clear();
 
+            //if closing bracket with no previous open brackets, throw exception
             if (c == ')' && bracketRefCount <= 0)
             {
-                continue;
+                throw invalid_argument(INVALID_EXPRESSION);
             }
             else if (c == ')' && bracketRefCount > 0)
             {
@@ -359,7 +400,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
 
         }
 
-            //if char is a negative/minus sign
+        //if char is a negative/minus sign
         else if (c == '-')
         {
             // if previous token is a number or a closing bracket or previous
@@ -382,7 +423,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
                 tokens.push_back(string(1, c));
             }
 
-                //else treat as a negative sign
+            //else treat as a negative sign
             else
             {
                 temp += c;
@@ -398,12 +439,14 @@ vector<string> Calculator::expTokenize(string &inExpression)
     //add the last number to the stack
     if(!temp.empty())
     {
+        //handle case of a closing bracket before the last number
         if (!tokens.empty() && tokens.back() == ")")
             tokens.push_back("*");
         tokens.push_back(temp);
     }
 
-    for (bracketRefCount; bracketRefCount > 0; bracketRefCount--)
+    //Add closing brackets for any open brackets
+    for (; bracketRefCount > 0; bracketRefCount--)
     {
         tokens.push_back(string(1, ')'));
     }
@@ -412,6 +455,7 @@ vector<string> Calculator::expTokenize(string &inExpression)
     return tokens;
 }
 
+//Covert a string tokens to RPN notation
 vector<string> Calculator::convertToRPN(vector<string>& expTokens)
 {
     //Create a vector to store the result
@@ -426,12 +470,12 @@ vector<string> Calculator::convertToRPN(vector<string>& expTokens)
         if(precedenceMap.find(token) == precedenceMap.end()) // oparand
             rpnStack.push_back(token);
 
-            //if token is an opening parenthesis, add it to the temp stack
+        //if token is an opening parenthesis, add it to the temp stack
         else if( token == "(")
             temp.push_back(token);
 
-            //if token is a closing parenthesis, then process the temp stack and
-            // add its contents to the rpn stack
+        //if token is a closing parenthesis, then process the temp stack and
+        // add its contents to the rpn stack
         else if (token == ")")
         {
             //while the temp stack has tokens, push them in reverse order into
@@ -446,7 +490,7 @@ vector<string> Calculator::convertToRPN(vector<string>& expTokens)
                 temp.pop_back();
         }
 
-            //if token is an operator
+        //if token is an operator
         else
         {
             //while temp vector is not empty and the token has higher precedence
@@ -467,6 +511,7 @@ vector<string> Calculator::convertToRPN(vector<string>& expTokens)
     return rpnStack;
 }
 
+//Calculate RPN notation
 double Calculator::calculateRPN(vector<string>& rpnStack)
 {
     //Create a vector to store the operands
@@ -483,11 +528,13 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
         //if token is an operator, perform the calculation
         if(precedenceMap.find(token) != precedenceMap.end())
         {
-            //get the operands
+            //if number of arguments is less than 2, then throw an exception
             if(operandStack.size() < 2)
             {
                 throw invalid_argument(INVALID_EXPRESSION);
             }
+
+            //Get operands for the operation
             double operand1 = operandStack[operandStack.size() - 1];
             double operand2 = operandStack[operandStack.size() - 2];
 
@@ -519,7 +566,7 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
             operandStack.push_back(operand2);
         }
 
-            //if token is a number, add to the operand stack
+        //if token is a number, add to the operand stack
         else
         {
             operandStack.push_back(atof(token.c_str()));
@@ -530,6 +577,7 @@ double Calculator::calculateRPN(vector<string>& rpnStack)
     return operandStack[0];
 }
 
+//Convert Binary number to Hexadecimal
 string Calculator::binToHex(string &input)
 {
     //pad input
@@ -579,11 +627,11 @@ string Calculator::binToHex(string &input)
     }
 
     // Removes leading zeroes, output '0' if all zeroes
-
     result = regex_replace(result, regex("^0+(?!$)"), "");
     return "0x" + result;
 }
 
+//Convert Hexadecimal number to Binary
 string Calculator::hexToBin(string& input)
 {
     //String to store results
@@ -649,10 +697,12 @@ string Calculator::hexToBin(string& input)
 
     return result;
 }
+
+//Convert Decimal number to Binary
 string Calculator::decToBin(string& input)
 {
 
-    //convert strinint
+    //convert string to int
     int num = stoi(input);
     vector<unsigned int> tempResult;
     stringstream temp;
@@ -676,16 +726,18 @@ string Calculator::decToBin(string& input)
     return temp.str();
 }
 
+//Convert Binary number toDecimal
 string Calculator::binToDec(string &input) {
     unsigned long result = 0;
 
     // Initializing base value to 1, i.e 2^0
     int base = 1;
 
+    //start the loop from the back
     for (int i = input.size() - 1; i >= 0; i--) {
         int tmp = stoi(to_string(input[i])) - '0';
 
-        //int tmp = input[i] - '0';
+        //calculate and store in temp
         result = result + tmp * base;
         base = base * 2;
     }
@@ -693,24 +745,31 @@ string Calculator::binToDec(string &input) {
     return to_string(result);
 }
 
+//Convert Hexadecimal number to decimal
 string Calculator::hexToDec(string &input)
 {
     string result;
+    //convert hex to bin
     result = hexToBin(input);
+    //use the result to covert to dec
     result = binToDec(result);
 
     return result;
 }
 
+//Convert decimal number to Hexadecimal
 string Calculator::decToHex(string &input)
 {
     string result;
+    //covert dec to bin
     result = decToBin(input);
+    //use the result to convert to hex
     result = binToHex(result);
 
     return result;
 }
 
+//helper function to validate the string input
 bool Calculator::validateInputString(const string &inExpression,
                                      set<char>validChars)
 {
