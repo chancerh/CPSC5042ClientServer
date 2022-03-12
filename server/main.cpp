@@ -1,18 +1,17 @@
 //Author  : Group#2
-//Date    : 02/07/2022
-//Version : 1.0
+//Date    : 03/12/2022
+//Version : 2.0
 //Filename: main.cpp
 
-/* This file contains the 'main' function. Program execution begins and ends here.
- * This is a simple example of a CPSC5042 Server that will listen to a CPSC5042 Client
+/**
+ * This is CPSC 5042 Group 2 Server application. The server application holds
+ * the logic for a Calculator. Clients can connect to this server to perform
+ * mathematical calculations such as calculate expressions (+, -, /, *, *),
+ * calculate statistics for a set of numbers, or convert between decimal,
+ * hexadecimal and binary numbers.
  *
- * Milestone 1 will have the server handle one client at a time. The server will:
- * - Wait for connection from client
- * - Process Connect RPC
- * - Once connected, process all RPC requests until the client does a Disconnect RPC
- * - This initial server will handle 2 RPC's:
- *      - Connect
- *      - Disconnect
+ * This file contains the 'main' function for the Server application. Program
+ * execution begins and ends here.
 */
 
 #include <cstdio>
@@ -21,13 +20,15 @@
 
 
 /**
- * The main() function starts the server applications, waits for client connection, then process RPCs from the client.
+ * The main() function starts the server applications, waits for client
+ * connection, then process RPCs from the client.
  *
- * This is an endless server, thus will not exit unless it hits an error, or terminated from the OS
+ * This is an endless server, thus will not exit unless it hits an error,
+ * or terminated from the OS
  *
  * @param argc An int containing the number input arguments
- * @param argv A char array containing the command line arguments. Expecting IP Address, port number
- *              (e.g. 127.0.0.1 8080)
+ * @param argv A char array containing the command line arguments.
+ *              Expecting IP Address, port number (e.g. 127.0.0.1 8080)
  * @return An int value with the exit status
  */
 int main(int argc, char const* argv[])
@@ -40,7 +41,7 @@ int main(int argc, char const* argv[])
     if (argc < 3)
     {
         //If insufficient number of args, print error and exit program.
-        cout << "\nMissing IP Address or Port number.\n";
+        cout << "\nERROR: Missing IP Address or Port number.\n";
         cout << "Exiting Server Application...\n";
         return -1;
     }
@@ -52,7 +53,7 @@ int main(int argc, char const* argv[])
     //Declare a bool flag to track the status of the system
     bool statusOk = true;
 
-    //Declare a server object variable to handle the server operations
+    //Declare  and init server object variable to handle the server operations
     RPCServer* serverObj = new RPCServer(serverIP, port);
 
     //Get server Status
@@ -65,10 +66,10 @@ int main(int argc, char const* argv[])
     }
     else
     {
-        cout << "\nServer failed to start\n" << endl;
+        cout << "\nERROR: Server failed to start\n" << endl;
     }
 
-    //While loop listening to client and processing the incoming RPC calls
+    //While loop listening to clients' requests for connection
     while (statusOk)
     {
         //printf("\nWaiting...\n");

@@ -1,7 +1,20 @@
 //Author  : Group#2
-//Date    : 02/07/2022
-//Version : 1.0
+//Date    : 03/12/2022
+//Version : 2.0
 //Filename: ClientTestDriver.cpp
+
+/**
+ * This is a test driver to automate simultaneous client connections to the
+ * server. This driver takes in 3 command line inputs:
+ *      1- IP Address (e.g. 127.0.0.1)
+ *      2- Port Number (e.g. 8080)
+ *      3- Number of client threads to be created.
+ *
+ * Note: The maximum number of simultaneous connections is artificially
+ * limited to 75 using a semaphore, due to resource limitations on CS1
+ * machine. On local machines, with removing the semaphore restrictions,
+ * number of simultaneous connections can be 200+
+ */
 
 #include <cstdio>
 #include <sys/socket.h>
@@ -17,15 +30,25 @@
 
 using namespace std;
 
+//Struct for host address and port
 struct hostAddr {
     string ipAddr;
     string port;
 };
 
+//Setting Buffer size to 1024 bytes
 const int BUFFER_SIZE = 1024;
 
+
+//A mutex to protect screen printing from races between client threads
 pthread_mutex_t g_screenLock;
+
+//A semaphore to control maximum number of simultaneous connections to the
+// server
 sem_t fullQueue;
+
+//Control for the semaphore
+const int MAX_CONNECTIONS = 75;
 
 /******************************************************************************/
 /**************************** Function Prototypes *****************************/
@@ -57,13 +80,24 @@ bool ConnectToServer(const char *serverAddress, int port, int & sock);
 
 /**
  * Sends a buffer to the server
- * @param sock
- * @param buffer
+ * @param sock A socket number to send the buffer through
+ * @param buffer The buffer to be sent
  */
 void sendBuffer(int sock, char *buffer);
 
+/**
+ * Waits and reads a buffer from server
+ * @param sock A socket to listen for the incoming buffer
+ * @param buffer The buffer received
+ */
 void readBuffer(int sock, char *buffer);
 
+
+/**
+ * This function is the entry point of each client thread
+ * @param hostAddr T host address struct
+ * @return nullptr
+ */
 void* threadExecution(void *hostAddr);
 
 /******************************************************************************/
@@ -81,17 +115,25 @@ int main(int argc, char const* argv[])
    if (argc < 4)
    {
       //If insufficient number of args, print error and exit program.
-      cout << "\nMissing IP Address or Port number, or # of threads.\n";
+      cout << "\nERROR: Missing IP Address or Port number, or # of threads.\n";
       cout << "Exiting Client Application...\n";
       return -1;
    }
 
     //Init variables
     const int NUM_THREADS = stoi (argv[3]);
-    //pthread_t testThreads[NUM_THREADS];
     struct hostAddr myHostAddr;
     myHostAddr.ipAddr = argv[1];
     myHostAddr.port = argv[2];
+    int sem_Val; //To store current value of semaphore
+
+    //If user entered a thread number less than 1, then exit program
+    if (NUM_THREADS <= 0)
+    {
+        cout << "\nERROR: Number of threads must be greater than 1.\n";
+        cout << "Exiting Client Application...\n";
+        return -1;
+    }
 
     //Init screen mutex
     if (pthread_mutex_init(&g_screenLock, nullptr) < 0)
@@ -99,46 +141,37 @@ int main(int argc, char const* argv[])
         printf("ERROR: Failed to init mutex. Exiting program.\n");
         return -1;
     }
-    int sem_Val = 75;
-    sem_init(&fullQueue, 0, sem_Val);
-    sem_getvalue(&fullQueue, &sem_Val);
-    printf("%d\n", sem_Val);
 
+    //Init the connections semaphore
+    sem_init(&fullQueue, 0, MAX_CONNECTIONS);
 
     //Create Threads
     for (int i = 0; i < NUM_THREADS; i++)
     {
+        //Wait for available sockets
         sem_wait(&fullQueue);
-        int test;
-        sem_getvalue(&fullQueue, &test);
-        printf("%d\n", test);
+
+        //Create a new thread
         pthread_t* testThread = new pthread_t();
         pthread_create(testThread,
                        nullptr,
                        threadExecution,
                        (void *)&myHostAddr);
+
+        //Detach thread from process (i.e. no join needed)
         pthread_detach(*testThread);
 
+        //Artificial sleep time
         usleep(5000);
     }
 
-
-
+    //Wait for all threads to finish executing by evaluating the semaphore value
     do
     {
         usleep(100000);
         sem_getvalue(&fullQueue, &sem_Val);
     }
-    while (sem_Val < 75);
-
-    //Wait for threads to join after completion
-//    for (int i = 0; i < NUM_THREADS; i++)
-//    {
-//        pthread_join(testThreads[i], nullptr);
-//    }
-
-    //sleep(3);
-
+    while (sem_Val < MAX_CONNECTIONS);
 
     return 0;
 }
@@ -147,7 +180,8 @@ void* threadExecution(void* inHostAddr)
 {
     //initialize data
     int sock = 0;
-    struct sockaddr_in serv_addr;
+
+    //Constants for creating buffers
     const string CONNECT = "connect",
             DISCONNECT = "disconnect",
             CALC_EXPR = "calculateExpression",
@@ -159,16 +193,22 @@ void* threadExecution(void* inHostAddr)
     const char *serverAddress = ((hostAddr*)inHostAddr)->ipAddr.c_str();
     const int port = atoi((*(hostAddr*)inHostAddr).port.c_str());
     bool bConnect = false;
+
+    //Strings for buffer creation
     string connectRPC,
             disconnectRPC,
             calcExpRPC,
             calcStatsRPC,
             convRPC;
+
+    //Vector to store parsed version of incoming buffer
     vector<string> arrayTokens;
+
+    //init a seeded random to be used for random wait times
     srand(time(nullptr));
 
-
-   bConnect = ConnectToServer(serverAddress, port, sock);
+    //Attempt to connect to server
+    bConnect = ConnectToServer(serverAddress, port, sock);
 
    //if failed to connect the to server, print error message and exit thread
    if(!bConnect)
@@ -177,136 +217,130 @@ void* threadExecution(void* inHostAddr)
        printf("ERROR: Failed to connect to server. Exiting thread "
                        "%lu\n.", pthread_self());
        pthread_mutex_unlock(&g_screenLock);
+
+       //release semaphore
+       sem_post(&fullQueue);
        return nullptr;
    }
 
-   //testing if client connect to server
-    if (bConnect == true)
+    //Reset buffers and Authenticate user
+    bzero(buffer, BUFFER_SIZE);
+    connectRPC = CONNECT + ";";
+
+    //Get credentials from user
+    connectRPC = connectRPC + getCredentials() + ";";
+
+    //Copy the created the RPC string to the buffer
+    strcpy(buffer, &connectRPC[0]);
+    sendBuffer(sock, buffer);
+
+    //Read from server
+    readBuffer(sock, buffer);
+    ParseTokens(buffer, arrayTokens);
+
+    //check if successfully connected and authenticated
+    if (arrayTokens[0] != SUCCESS)
     {
-        //Reset buffers and Authenticate user
-        bzero(buffer, BUFFER_SIZE);
-        connectRPC = CONNECT + ";";
+        //release semaphore
+        sem_post(&fullQueue);
+        return nullptr;
+    }
 
-        //Get credentials from user
-        connectRPC = connectRPC + getCredentials() + ";";
+    //Sleep
+    usleep(100000 + rand() % 100000);
 
-        //Copy the created the RPC string to the buffer
-        strcpy(buffer, &connectRPC[0]);
-        sendBuffer(sock, buffer);
-
-        //Read from server
-        readBuffer(sock, buffer);
-        ParseTokens(buffer, arrayTokens);
-
-        //check if successfully connected and authenticated
-        if (arrayTokens[0] != SUCCESS)
-        {
-            return nullptr;
-        }
-
-        //Sleep
-        usleep(100000 + rand() % 100000);
-
-        for (int i = 0; i < 6; i++)
-        {
-            //Use Calculate Expression
-
-            //Clear buffers
-            bzero(buffer, BUFFER_SIZE);
-
-            //Create message to be sent
-            calcExpRPC = CALC_EXPR + ";";
-            calcExpRPC = calcExpRPC + to_string(rand() % 1000 - 500) + "/" +
-                         to_string(rand() % 1000 - 500) + " - " +
-                         to_string(rand() % 1000 - 500) + " +" +
-                         to_string(rand() % 1000 - 500) + " ^ " +
-                         to_string(rand() % 4) + " +" +
-                         to_string(rand() % 1000 - 500) + "*" +
-                         to_string(rand() % 1000 - 500) + ";";
-
-            //send buffer
-            strcpy(buffer, &calcExpRPC[0]);
-            sendBuffer(sock, buffer);
-
-            //read response
-            readBuffer(sock, buffer);
-
-            //Sleep
-            usleep(10000 + rand() % 5000);
-
-
-            //Use Stats RPC
-
-            //Clear buffers
-            bzero(buffer, BUFFER_SIZE);
-            arrayTokens.clear();
-
-            //Create message to be sent
-            calcStatsRPC = CALC_STAT + ";";
-            calcStatsRPC = calcStatsRPC + to_string(rand() % 1000) + " " +
-                           to_string(rand() % 1000) + " " +
-                           to_string(rand() % 1000) + " " +
-                           to_string(rand() % 1000) + " " +
-                           to_string(rand() % 1000) + ";";
-
-            //send buffer
-            strcpy(buffer, &calcStatsRPC[0]);
-            sendBuffer(sock, buffer);
-
-            //read response
-            readBuffer(sock, buffer);
-
-            //Sleep
-            usleep(10000 + rand() % 7000);
-
-            //Use Conversion RPC
-
-            //Clear buffers
-            bzero(buffer, BUFFER_SIZE);
-
-            //Create message to be sent
-            convRPC = CALC_CONV + ";";
-            convRPC = convRPC + "5;" + to_string(rand() % 1000) + ";";
-
-            //send buffer
-            strcpy(buffer, &convRPC[0]);
-            sendBuffer(sock, buffer);
-
-            //read response
-            readBuffer(sock, buffer);
-
-            //Sleep
-            usleep(10000 + rand() % 2000);
-        }
-        //Use Disconnect RPC
+    //For loop to test 3 RPCs 6 times each on each thread/client
+    for (int i = 0; i < 6; i++)
+    {
+        //Use Calculate Expression
 
         //Clear buffers
         bzero(buffer, BUFFER_SIZE);
 
-        //Create message to be sent to server
-        disconnectRPC = DISCONNECT + ";";
+        //Create message to be sent
+        calcExpRPC = CALC_EXPR + ";";
+        calcExpRPC = calcExpRPC + to_string(rand() % 1000 - 500) + "/" +
+                     to_string(rand() % 1000 - 500) + " - " +
+                     to_string(rand() % 1000 - 500) + " +" +
+                     to_string(rand() % 1000 - 500) + " ^ " +
+                     to_string(rand() % 4) + " +" +
+                     to_string(rand() % 1000 - 500) + "*" +
+                     to_string(rand() % 1000 - 500) + ";";
 
         //send buffer
-        strcpy(buffer, &disconnectRPC[0]);
+        strcpy(buffer, &calcExpRPC[0]);
         sendBuffer(sock, buffer);
 
         //read response
         readBuffer(sock, buffer);
-        close(sock);
+
+        //Sleep
+        usleep(10000 + rand() % 5000);
 
 
+        //Use Stats RPC
+
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
+        arrayTokens.clear();
+
+        //Create message to be sent
+        calcStatsRPC = CALC_STAT + ";";
+        calcStatsRPC = calcStatsRPC + to_string(rand() % 1000) + " " +
+                       to_string(rand() % 1000) + " " +
+                       to_string(rand() % 1000) + " " +
+                       to_string(rand() % 1000) + " " +
+                       to_string(rand() % 1000) + ";";
+
+        //send buffer
+        strcpy(buffer, &calcStatsRPC[0]);
+        sendBuffer(sock, buffer);
+
+        //read response
+        readBuffer(sock, buffer);
+
+        //Sleep
+        usleep(10000 + rand() % 7000);
+
+        //Use Conversion RPC
+
+        //Clear buffers
+        bzero(buffer, BUFFER_SIZE);
+
+        //Create message to be sent
+        convRPC = CALC_CONV + ";";
+        convRPC = convRPC + "5;" + to_string(rand() % 1000) + ";";
+
+        //send buffer
+        strcpy(buffer, &convRPC[0]);
+        sendBuffer(sock, buffer);
+
+        //read response
+        readBuffer(sock, buffer);
+
+        //Sleep
+        usleep(10000 + rand() % 2000);
     }
-    else
-    {
-        pthread_mutex_lock(&g_screenLock);
-        printf("Exit without calling RPC");
-        pthread_mutex_lock(&g_screenLock);
-    }
+
+
+    //Use Disconnect RPC
+
+    //Clear buffers
+    bzero(buffer, BUFFER_SIZE);
+
+    //Create message to be sent to server
+    disconnectRPC = DISCONNECT + ";";
+
+    //send buffer
+    strcpy(buffer, &disconnectRPC[0]);
+    sendBuffer(sock, buffer);
+
+    //read response
+    readBuffer(sock, buffer);
+    close(sock);
+
 
     sem_post(&fullQueue);
-    int test;
-    sem_getvalue(&fullQueue, &test);
-    printf("%d\n", test);
     return nullptr;
 }
 
@@ -316,7 +350,7 @@ void sendBuffer(int sock, char *buffer)
    int nlen = strlen(buffer);
    buffer[nlen] = 0;
 
-   //Send the created RPC buffer to server
+   //Send the created RPC buffer to server and print on screen
     send(sock, buffer, strlen(buffer) + 1, 0);
     pthread_mutex_lock(&g_screenLock);
     printf("Socket %d --> %s\n", sock, buffer);
@@ -326,9 +360,11 @@ void sendBuffer(int sock, char *buffer)
 
 void readBuffer(int sock, char *buffer)
 {
+    //Read buffer from socket connection
     bzero(buffer, BUFFER_SIZE);
     read(sock, buffer, BUFFER_SIZE);
 
+    //Print buffer on the screen
     pthread_mutex_lock(&g_screenLock);
     printf("Socket %d <-- %s\n", sock, buffer);
     pthread_mutex_unlock(&g_screenLock);
@@ -337,7 +373,7 @@ void readBuffer(int sock, char *buffer)
 
 string getCredentials()
 {
-   //return
+   //hardcoded credentials for testing
    return ("Mike;Mike");
 }
 

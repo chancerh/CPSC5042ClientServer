@@ -1,3 +1,8 @@
+//Author  : Group#2
+//Date    : 03/12/2022
+//Version : 2.0
+//Filename: Authenticator.cpp
+
 #include "Authenticator.h"
 #include <fstream>
 #include <sstream>
@@ -6,22 +11,23 @@
 using namespace std;
 
 
-
+//Constructor
 Authenticator::Authenticator(const string &fileName)
 {
     // populate username and passwords with data from a file
     readFile(fileName);
 }
+
+//Destructor
 Authenticator::~Authenticator() = default;
 
+//Authenticates user against credentials parsed from file
 bool Authenticator::authenticate(const string &username, const string &password)
 {
     // First check if the user exists
     unordered_map<string, string>::const_iterator mapIterator =
             m_users.find(username);
-//    cout << username << "\n" << endl;
-//    cout << password << "\n" << endl;
-//    cout << m_users[username] << endl;
+
     // If the user doesn't exist, return false
     if (mapIterator == m_users.end())
         return false;
@@ -32,11 +38,9 @@ bool Authenticator::authenticate(const string &username, const string &password)
 
     // Otherwise, return false
     return false;
-
-
-
 }
 
+//Reads a file containing credentials and populating contents into a map
 void Authenticator::readFile(const string &filename, char delim)
 {
 
@@ -44,11 +48,11 @@ void Authenticator::readFile(const string &filename, char delim)
     ifstream infile(filename);
 
     // Make sure the file opened successfully
-    if(infile.is_open()) {
-
+    if(infile.is_open())
+    {
         string line; // This will hold each line of the file
-        while(getline(infile, line)) {
-
+        while(getline(infile, line))
+        {
             // Parse each line for username and password
             string username, password;
             stringstream strStrm(line);
@@ -61,6 +65,8 @@ void Authenticator::readFile(const string &filename, char delim)
             // Store extracted username and password in the map attribute
             m_users[username] = password;
         }
-    }
 
+        //Close file handle
+        infile.close();
+    }
 }

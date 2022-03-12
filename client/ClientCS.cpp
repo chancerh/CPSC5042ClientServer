@@ -1,6 +1,6 @@
 //Author  : Group#2
-//Date    : 02/07/2022
-//Version : 1.0
+//Date    : 03/12/2022
+//Version : 2.0
 //Filename: ClientCS.cpp
 
 #include <cstdio>
@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <vector>
-#include <iterator>
 #include <iostream>
 #include <cstring>
 #include <termio.h>
@@ -102,7 +101,6 @@ const char* logoffRPC = "disconnect;";
 char buffer[1024] = { 0 };
 char connected;
 char disconnected;
-const int SLEEP_TIME = 10;
 bool bConnect = false;
 
 int main(int argc, char const* argv[])
@@ -209,7 +207,7 @@ int main(int argc, char const* argv[])
 
 bool validateInteger(string input)
 {
-    for(int i = 0; i < input.size(); i++){
+    for(unsigned long i = 0; i < input.size(); i++){
         //check if string input contain int
         if(!isdigit(input[i])){
             return false;
@@ -253,7 +251,7 @@ void userInterface()
         do{
             cout << "Enter selection: ";
             getline(cin, userInput);
-        }while(!validateInteger(userInput));
+        }while(userInput.empty() || !validateInteger(userInput));
 
         //Takes user's choice and perform desired calculation
         switch(stoi(userInput))
@@ -375,7 +373,7 @@ void processConversion() {
         do{
             cout << "\nEnter Selection: ";
             getline(cin, choice);
-        }while(!validateInteger(choice));
+        }while(choice.empty() || !validateInteger(choice));
 
         //Direct user's choice and call conversion methods
         switch(stoi(choice)){

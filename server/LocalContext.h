@@ -1,3 +1,8 @@
+//Author  : Group#2
+//Date    : 03/12/2022
+//Version : 2.0
+//Filename: LocalContext.h
+
 #ifndef CPSC5042CLIENTSERVER_LOCALCONTEXT_H
 #define CPSC5042CLIENTSERVER_LOCALCONTEXT_H
 
@@ -14,12 +19,6 @@ public:
      * @return RPC count for the specific client
      */
     int getRpcCount();
-
-    /**
-     * Set the number of RPCs for a specific client
-     * @param rpcCount
-     */
-    void setRpcCount(int rpcCount);
 
     /**
      * Increment the RPC count for a specific client
