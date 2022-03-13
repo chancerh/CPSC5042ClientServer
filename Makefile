@@ -5,14 +5,14 @@ CXXFLAGS = -std=c++17 -lpthread -pthread
 # Default behavior when typing "make" at the command line compiles both server
 # and client executables.
 .PHONY : all
-all : startServer startClient clientTestDriver
+all : startServer startClient startClientDriver
 
 # Compile the client executable
 startClient : client/ClientCS.cpp
 	$(CXX) $(CXXFLAGS) $< -o startClient
 
-clientTestDriver : client/ClientTestDriver.cpp
-	$(CXX) $(CXXFLAGS) $< -o clientTestDriver
+startClientDriver : client/ClientTestDriver.cpp
+	$(CXX) $(CXXFLAGS) $< -o startClientDriver
 
 # Link the compiled main and RPCServe code to create the server executable
 # Start with class names
